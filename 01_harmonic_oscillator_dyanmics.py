@@ -765,3 +765,128 @@ anim_j = FuncAnimation(fig, update_j, frames=Nt, interval=33, blit=True)
 plt.close()
 
 HTML(anim_j.to_jshtml())
+
+#%%
+"""
+## Phase Space and the Husimi Q Function
+
+So far we've looked at the state from one angle at a time: $|\psi(x)|^2$
+shows us where the particle might be, and $j(x)$ shows how probability flows.
+But a quantum state encodes *both* position and momentum simultaneously. Is
+there a way to visualize the full picture?
+
+In classical mechanics, you'd plot the state as a point in **phase space** — a
+2D plane with position on one axis and momentum on the other. A harmonic
+oscillator traces out a circle (or ellipse) in this space.
+
+For a quantum state, we can't pinpoint both $x$ and $p$ exactly (Heisenberg's
+uncertainty principle forbids it). But we can ask a softer question: "If I had
+a detector shaped like a minimum-uncertainty wave packet centered at position
+$x_0$ with momentum $p_0$, how much of $\psi$ would it pick up?" The answer is
+the **Husimi Q function**:
+
+$$
+Q(x_0, p_0) = \frac{1}{\pi\hbar} |\langle \alpha_{x_0, p_0} | \psi \rangle|^2
+$$
+
+where $|\alpha_{x_0, p_0}\rangle$ is a Gaussian centered at $(x_0, p_0)$:
+
+$$
+\alpha(x) = \left(\frac{1}{2\pi\sigma_0^2}\right)^{1/4}
+\exp\left(-\frac{(x-x_0)^2}{4\sigma_0^2}\right)
+\exp\left(\frac{i p_0 x}{\hbar}\right)
+$$
+
+Think of $Q$ as a **blurred photograph** of the quantum state in phase space.
+The blur has a fixed size (set by the uncertainty principle), but the overall
+shape tells you where the state lives in the position-momentum plane.
+
+For our displaced coherent state, $Q$ is a single Gaussian blob — and as time
+passes, this blob traces out a circle in phase space, just like the classical
+trajectory.
+"""
+
+#%%
+# Phase space grid for the Q function
+N_xq, N_pq = 50, 50
+p_max_q = m * omega * abs(x0_displacement) * 1.8   # covers the classical orbit
+xq = np.linspace(-abs(x0_displacement) * 1.8, abs(x0_displacement) * 1.8, N_xq)
+pq = np.linspace(-p_max_q, p_max_q, N_pq)
+XQ, PQ = np.meshgrid(xq, pq, indexing='xy')  # XQ shape (N_pq, N_xq)
+
+# Precompute overlap building blocks (independent of time)
+prefactor = (1 / (2 * np.pi * sigma0**2))**0.25
+# Gaussian envelope: g[j, i] = prefactor * exp(-(x_i - xq_j)^2 / (4*sigma0^2))
+g_weights = prefactor * np.exp(
+    -(x[np.newaxis, :] - xq[:, np.newaxis])**2 / (4 * sigma0**2)
+)  # shape (N_xq, Nx)
+
+# Momentum phase factors: phase[k, i] = exp(-i * pq_k * x_i / hbar)
+phase_factors = np.exp(-1j * pq[:, np.newaxis] * x[np.newaxis, :] / hbar)  # (N_pq, Nx)
+
+# Compute Q at selected frames
+n_q_frames = 80
+q_frame_idx = np.linspace(0, Nt - 1, n_q_frames, dtype=int)
+Q_frames = np.zeros((n_q_frames, N_pq, N_xq))
+
+print(f"Computing Q function on {N_xq}x{N_pq} phase space grid, {n_q_frames} frames...")
+for fi, ti in enumerate(q_frame_idx):
+    psi_t = solution.y[:, ti]
+    g_psi = g_weights * psi_t[np.newaxis, :]     # (N_xq, Nx)
+    overlap = (g_psi * dx) @ phase_factors.conj().T  # (N_xq, N_pq)
+    Q_frames[fi] = np.abs(overlap.T)**2 / (np.pi * hbar)  # (N_pq, N_xq)
+
+print(f"Done. Q max = {Q_frames.max():.4f}")
+
+#%%
+"""
+Let's first look at a static 3D view of the initial Q function — you should see
+a single Gaussian peak sitting at $(x_0, 0)$ in phase space:
+"""
+
+#%%
+from mpl_toolkits.mplot3d import Axes3D
+
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(XQ, PQ, Q_frames[0], cmap='viridis', alpha=0.9,
+                rstride=1, cstride=1, linewidth=0, antialiased=True)
+ax.set_xlabel('x (position)')
+ax.set_ylabel('p (momentum)')
+ax.set_zlabel('Q(x, p)')
+ax.set_title('Husimi Q function at t = 0')
+ax.view_init(elev=30, azim=-60)
+plt.tight_layout()
+plt.show()
+
+#%%
+"""
+Now let's animate this. The Q blob should orbit in a circle — the quantum
+version of the classical phase space trajectory. The animation renders each
+frame as a 3D surface, so it takes a moment to generate.
+"""
+
+#%%
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection='3d')
+
+Q_max = Q_frames.max() * 1.05
+t_q = t_eval[q_frame_idx]
+
+def update_Q(fi):
+    ax.clear()
+    ax.plot_surface(XQ, PQ, Q_frames[fi], cmap='viridis', alpha=0.9,
+                    rstride=1, cstride=1, linewidth=0, antialiased=True)
+    ax.set_xlabel('x')
+    ax.set_ylabel('p')
+    ax.set_zlabel('Q')
+    ax.set_zlim(0, Q_max)
+    ax.set_title(f'Q function  t = {t_q[fi]:.2f}  (period {t_q[fi]/T_osc:.2f})')
+    ax.view_init(elev=30, azim=-60)
+
+print(f"Generating 3D animation ({n_q_frames} frames)... this takes a moment.")
+anim_Q = FuncAnimation(fig, update_Q, frames=n_q_frames, interval=50, blit=False)
+plt.close()
+
+HTML(anim_Q.to_jshtml())
+# %%
