@@ -32,7 +32,7 @@ something more abstract.
 
 In Notebook 1, a quantum state was a function $\psi(x)$ — a complex number at
 every point in space. But this is like describing a vector by listing its
-components: $\\vec{v} = (v_x, v_y, v_z)$. The components depend on your
+components: $\vec{v} = (v_x, v_y, v_z)$. The components depend on your
 coordinate system, but the vector itself doesn't. If someone hands you a
 velocity vector, its *physical meaning* (speed and direction of an object)
 is the same whether you write it in Cartesian or polar coordinates. The
@@ -42,7 +42,7 @@ Quantum states work the same way. Paul Dirac invented a notation that captures
 this. A quantum state is written as a **ket**:
 
 $$
-|\\psi\\rangle
+|\psi\rangle
 $$
 
 This is the abstract state — no coordinates, no basis, just "the state of the
@@ -52,22 +52,22 @@ from linear algebra.
 
 ### Getting Numbers Out: The Inner Product
 
-To get actual numbers from $|\\psi\\rangle$, you project it onto a **basis**.
-If you choose the **position basis**, where $|x\\rangle$ represents "the particle
+To get actual numbers from $|\psi\rangle$, you project it onto a **basis**.
+If you choose the **position basis**, where $|x\rangle$ represents "the particle
 is exactly at position $x$", then:
 
 $$
-\\psi(x) = \\langle x | \\psi \\rangle
+\psi(x) = \langle x | \psi \rangle
 $$
 
 The left side is the wave function we've been using all along. The right side
-says: "take the inner product of the position basis state $|x\\rangle$ with the
-abstract state $|\\psi\\rangle$." The **bra** $\\langle x|$ is the dual
-(conjugate transpose) of the ket $|x\\rangle$.
+says: "take the inner product of the position basis state $|x\rangle$ with the
+abstract state $|\psi\rangle$." The **bra** $\langle x|$ is the dual
+(conjugate transpose) of the ket $|x\rangle$.
 
-The notation is deliberately suggestive: a **bra**cket $\\langle x | \\psi \\rangle$
-is an inner product. A ket $|\\psi\\rangle$ is like a column vector. A bra
-$\\langle\\phi|$ is like a row vector (the conjugate transpose). Their product is
+The notation is deliberately suggestive: a **bra**cket $\langle x | \psi \rangle$
+is an inner product. A ket $|\psi\rangle$ is like a column vector. A bra
+$\langle\phi|$ is like a row vector (the conjugate transpose). Their product is
 a number.
 
 ### Basis Independence
@@ -77,20 +77,20 @@ This might seem like unnecessary formalism, but it buys us something real:
 project onto momentum eigenstates:
 
 $$
-\\tilde\\psi(p) = \\langle p | \\psi \\rangle
+\tilde\psi(p) = \langle p | \psi \rangle
 $$
 
-Same state $|\\psi\\rangle$, different representation. The physics doesn't care
+Same state $|\psi\rangle$, different representation. The physics doesn't care
 which basis you use — just like a force vector doesn't care whether you describe
 it in Cartesian or spherical coordinates.
 
 The completeness relation ties everything together:
 
 $$
-\\int |x\\rangle \\langle x| dx = \\hat{I}
+\int |x\rangle \langle x| dx = \hat{I}
 $$
 
-This says: if you sum up all position projectors $|x\\rangle\\langle x|$,
+This says: if you sum up all position projectors $|x\rangle\langle x|$,
 you get the identity operator. It's the quantum version of "every vector can
 be expanded in a complete basis." Insert this resolution of the identity into
 any bra-ket expression and you recover the position representation.
@@ -100,68 +100,68 @@ any bra-ket expression and you recover the position representation.
 """
 ## From Continuous to Discrete: What Our Grid Really Means
 
-In Notebook 1, we discretized space onto a grid $x_0, x_1, \\ldots, x_{N-1}$
-and stored $\\psi$ as a vector of $N$ complex numbers. In Dirac notation, what
+In Notebook 1, we discretized space onto a grid $x_0, x_1, \ldots, x_{N-1}$
+and stored $\psi$ as a vector of $N$ complex numbers. In Dirac notation, what
 we actually computed was:
 
 $$
-\\psi_i = \\langle x_i | \\psi \\rangle
+\psi_i = \langle x_i | \psi \rangle
 $$
 
 Our NumPy vector `psi` is the collection of these overlaps — the state
-$|\\psi\\rangle$ expressed in the position basis $\\{|x_i\\rangle\\}$.
+$|\psi\rangle$ expressed in the position basis $\{|x_i\rangle\}$.
 
 When we compute the norm as `np.sum(np.abs(psi)**2) * dx`, we're evaluating:
 
 $$
-\\langle \\psi | \\psi \\rangle = \\sum_i |\\langle x_i|\\psi\\rangle|^2 \\Delta x
-\\approx \\int |\\langle x|\\psi\\rangle|^2 dx = \\int |\\psi(x)|^2 dx
+\langle \psi | \psi \rangle = \sum_i |\langle x_i|\psi\rangle|^2 \Delta x
+\approx \int |\langle x|\psi\rangle|^2 dx = \int |\psi(x)|^2 dx
 $$
 
-When we compute $\\langle x \\rangle =$ `np.sum(x * np.abs(psi)**2) * dx`,
-we're evaluating $\\langle \\psi | \\hat{x} | \\psi \\rangle$ — the bra-ket
+When we compute $\langle x \rangle =$ `np.sum(x * np.abs(psi)**2) * dx`,
+we're evaluating $\langle \psi | \hat{x} | \psi \rangle$ — the bra-ket
 sandwich of the position operator.
 
 ### Matrix Representations Are Always Relative to a Basis
 
 **Every matrix we built in Notebook 1 was secretly a representation of an
 abstract operator in the position basis.** The tridiagonal kinetic energy
-matrix $T$ represents $\\langle x_i | \\hat{T} | x_j \\rangle$. The diagonal
-potential matrix represents $\\langle x_i | \\hat{V} | x_j \\rangle = V(x_i)
-\\delta_{ij}$. The Hamiltonian matrix $H$ represents
-$\\langle x_i | \\hat{H} | x_j \\rangle$.
+matrix $T$ represents $\langle x_i | \hat{T} | x_j \rangle$. The diagonal
+potential matrix represents $\langle x_i | \hat{V} | x_j \rangle = V(x_i)
+\delta_{ij}$. The Hamiltonian matrix $H$ represents
+$\langle x_i | \hat{H} | x_j \rangle$.
 
 This is exactly like how a rotation matrix $R$ is a representation of an
 abstract rotation in a particular coordinate system. Change the basis
 (coordinate system) and you get a different matrix, but the rotation itself
 is the same.
 
-The power of Dirac notation is this separation: $|\\psi\\rangle$ is the state,
-$\\hat{H}$ is the operator, and the matrix elements
-$\\langle x_i | \\hat{H} | x_j \\rangle$ are what we actually put in the
+The power of Dirac notation is this separation: $|\psi\rangle$ is the state,
+$\hat{H}$ is the operator, and the matrix elements
+$\langle x_i | \hat{H} | x_j \rangle$ are what we actually put in the
 computer. The physics lives in the abstract objects; the numerics live in a
 particular basis.
 
 ### Energy Eigenstates as a Basis
 
-There's another natural basis: the **energy eigenstates** $|n\\rangle$ satisfying
-$\\hat{H}|n\\rangle = E_n|n\\rangle$. Any state can be expanded:
+There's another natural basis: the **energy eigenstates** $|n\rangle$ satisfying
+$\hat{H}|n\rangle = E_n|n\rangle$. Any state can be expanded:
 
 $$
-|\\psi\\rangle = \\sum_n c_n |n\\rangle \\quad \\text{where} \\quad c_n = \\langle n | \\psi \\rangle
+|\psi\rangle = \sum_n c_n |n\rangle \quad \text{where} \quad c_n = \langle n | \psi \rangle
 $$
 
 Time evolution is trivially simple in this basis:
 
 $$
-|\\psi(t)\\rangle = \\sum_n c_n e^{-iE_n t/\\hbar} |n\\rangle
+|\psi(t)\rangle = \sum_n c_n e^{-iE_n t/\hbar} |n\rangle
 $$
 
 Each energy eigenstate just acquires a phase. The wave function in position
-space is then $\\psi(x,t) = \\sum_n c_n e^{-iE_n t/\\hbar} \\langle x|n\\rangle$.
+space is then $\psi(x,t) = \sum_n c_n e^{-iE_n t/\hbar} \langle x|n\rangle$.
 Whether the wave packet stays together or falls apart depends entirely on how
-the phases $e^{-iE_n t/\\hbar}$ relate to each other — which depends on the
-energy spectrum $\\{E_n\\}$.
+the phases $e^{-iE_n t/\hbar}$ relate to each other — which depends on the
+energy spectrum $\{E_n\}$.
 """
 
 #%%
@@ -172,17 +172,17 @@ Now let's break the harmonic oscillator's perfect symmetry. We add a
 quartic term:
 
 $$
-V(x) = \\frac{1}{2} m \\omega^2 x^2 + \\lambda x^4
+V(x) = \frac{1}{2} m \omega^2 x^2 + \lambda x^4
 $$
 
-The parameter $\\lambda$ controls the strength of the anharmonicity. When
-$\\lambda = 0$ we recover the harmonic oscillator. For positive $\\lambda$, the
+The parameter $\lambda$ controls the strength of the anharmonicity. When
+$\lambda = 0$ we recover the harmonic oscillator. For positive $\lambda$, the
 potential rises faster than a parabola at large $|x|$, which:
-- pushes higher energy levels *further apart* than $\\hbar\\omega$
+- pushes higher energy levels *further apart* than $\hbar\omega$
 - breaks the equal spacing that kept the harmonic wave packet coherent
 - causes the wave packet to gradually lose its shape
 
-We choose $\\lambda = 0.01$ — small enough that the potential looks nearly
+We choose $\lambda = 0.01$ — small enough that the potential looks nearly
 parabolic near the center, but large enough to produce visible effects
 over several oscillation periods:
 """
@@ -194,16 +194,21 @@ from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
 import matplotlib.pyplot as plt
 
-# Physical parameters (natural units: hbar = m = omega = 1)
+# ─── Adjustable parameters ───────────────────────────────────────────
+# Physical
 hbar = 1.0
 m = 1.0
 omega = 1.0
 
-# Anharmonicity
-lam = 0.01
+lam = 0.01                   # anharmonic coupling (for main analysis)
+lam_anim = 0.002             # smaller coupling for the animation (slow spreading)
 
-# Initial wave packet: a coherent state displaced from center
-x0_displacement = 3.0
+x0_displacement = 3.0        # initial displacement from center
+
+# Grid controls — tweak these to explore discretization effects
+x_axis_max = 9.0             # grid spans [-x_axis_max, +x_axis_max]
+grid_points_per_unit = 50    # spatial resolution (try 30→80 to see artifact shrink)
+# ─────────────────────────────────────────────────────────────────────
 
 # Coherent state width: the ground state of the HO has rms width
 # sigma = sqrt(hbar / (2*m*omega)). A displaced Gaussian with this exact
@@ -214,6 +219,7 @@ sigma = np.sqrt(hbar / (2 * m * omega))
 print(f"Coherent state width sigma = {sigma:.4f}")
 print(f"Anharmonic coupling lambda = {lam}")
 print(f"Initial displacement x0 = {x0_displacement}")
+print(f"Grid resolution: {grid_points_per_unit} points/unit")
 
 # How significant is the quartic term at the displacement?
 V_harm_at_x0 = 0.5 * m * omega**2 * x0_displacement**2
@@ -234,9 +240,9 @@ parabola near the center.
 """
 
 #%%
-# Spatial grid
-Nx = 512
-L = abs(x0_displacement) + 8 * sigma
+# Spatial grid (derived from user parameters)
+L = x_axis_max
+Nx = int(2 * L * grid_points_per_unit)
 x = np.linspace(-L, L, Nx)
 dx = x[1] - x[0]
 
@@ -264,14 +270,94 @@ print(f"Grid: {Nx} points, dx = {dx:.4f}")
 
 #%%
 """
+## First Look: Watching a Wave Packet Slowly Lose Its Shape
+
+Before diving into the analysis, let's *watch* what anharmonicity does.
+We'll use a very small quartic coupling ($\lambda = $`lam_anim`) — just enough
+to see the wave packet gradually spreading over 6 oscillation periods. In a
+pure harmonic potential, the packet would bounce back and forth unchanged
+forever. Here, you'll see it slowly broaden and develop ripples.
+"""
+
+#%%
+from matplotlib.animation import FuncAnimation
+from IPython.display import HTML
+
+# Build Hamiltonian with the tiny anharmonic coupling (for animation only)
+main_diag = -2.0 / dx**2 * np.ones(Nx)
+off_diag  =  1.0 / dx**2 * np.ones(Nx - 1)
+
+T_kinetic = -(hbar**2 / (2 * m)) * diags(
+    [off_diag, main_diag, off_diag],
+    [-1, 0, 1], shape=(Nx, Nx), dtype=complex
+)
+
+V_anim = V_harm + lam_anim * x**4
+H_anim = T_kinetic + diags(V_anim + 0j, 0, shape=(Nx, Nx))
+
+# Initial coherent state
+psi_0 = ((1 / (2 * np.pi * sigma**2))**0.25
+         * np.exp(-(x - x0_displacement)**2 / (4 * sigma**2))
+         + 0j)
+psi_0 /= np.sqrt(np.sum(np.abs(psi_0)**2) * dx)
+
+T_osc = 2 * np.pi / omega
+T_anim = 6 * T_osc
+Nt_anim = 360
+t_anim = np.linspace(0, T_anim, Nt_anim)
+
+max_eigenvalue_estimate = 2 * hbar**2 / (m * dx**2) + np.max(V_anim)
+max_dt = 2.0 / max_eigenvalue_estimate
+
+print(f"Animating with lambda = {lam_anim} over {T_anim/T_osc:.0f} periods...")
+sol_anim = solve_ivp(
+    lambda t, psi: (-1j / hbar) * (H_anim @ psi),
+    [0, T_anim], psi_0,
+    t_eval=t_anim, method='RK45',
+    max_step=max_dt, rtol=1e-8, atol=1e-10,
+)
+print(f"Done ({sol_anim.nfev} evaluations)")
+
+pdf_anim = np.abs(sol_anim.y)**2
+
+fig, ax = plt.subplots(figsize=(9, 4))
+
+# Scaled potential background
+V_scale = np.max(pdf_anim) / 20
+ax.plot(x, V_anim * V_scale, 'k-', linewidth=0.8, alpha=0.4, label='V(x) (scaled)')
+ax.fill_between(x, V_anim * V_scale, alpha=0.05, color='k')
+
+line, = ax.plot(x, pdf_anim[:, 0], color='steelblue', linewidth=1.5,
+                label=r'$|\psi|^2$')
+
+ax.set_xlim(-L, L)
+ax.set_ylim(0, np.max(pdf_anim) * 1.1)
+ax.set_xlabel('x')
+ax.set_ylabel(r'$|\psi(x,t)|^2$')
+title = ax.set_title(f't = 0.00  (period 0.00)')
+ax.grid(True, alpha=0.2)
+ax.legend(loc='upper right')
+
+def update_anim(i):
+    line.set_ydata(pdf_anim[:, i])
+    title.set_text(f't = {t_anim[i]:.2f}  (period {t_anim[i]/T_osc:.2f})')
+    return line, title
+
+anim = FuncAnimation(fig, update_anim, frames=Nt_anim, interval=33, blit=True)
+plt.close()
+
+HTML(anim.to_jshtml())
+
+#%%
+"""
 ## The Energy Spectrum: Why Equal Spacing Matters
 
 Before we run the time evolution, let's look at the energy eigenvalues of
 both potentials. This is where the Dirac notation pays off: a state
-$|\\psi\\rangle = \\sum_n c_n |n\\rangle$ evolves as
-$|\\psi(t)\\rangle = \\sum_n c_n e^{-iE_n t/\\hbar} |n\\rangle$. If the
+$|\psi\rangle = \sum_n c_n |n\rangle$ evolves as
+$|\psi(t)\rangle = \sum_n c_n e^{-iE_n t/\hbar} |n\rangle$. If the
 energy gaps $E_{n+1} - E_n$ are all equal (as in the harmonic oscillator),
-then all the phases realign after one period $T = 2\\pi/\\omega$ and the
+then all the phases realign after one period $T = 2\pi/\omega$ and the
 wave packet returns to its exact initial shape. If the gaps vary, the phases
 drift apart and the wave packet deforms.
 
@@ -279,17 +365,9 @@ We can compute eigenvalues numerically using `scipy.sparse.linalg.eigsh`:
 """
 
 #%%
-# Build Hamiltonians
-main_diag = -2.0 / dx**2 * np.ones(Nx)
-off_diag  =  1.0 / dx**2 * np.ones(Nx - 1)
-
-T_kinetic = -(hbar**2 / (2 * m)) * diags(
-    [off_diag, main_diag, off_diag],
-    [-1, 0, 1], shape=(Nx, Nx), dtype=float
-)
-
-H_harm = T_kinetic + diags(V_harm, 0, shape=(Nx, Nx), dtype=float)
-H_anharm = T_kinetic + diags(V_anharm, 0, shape=(Nx, Nx), dtype=float)
+# T_kinetic already built above; now build the full Hamiltonians for eigenvalue analysis
+H_harm = (T_kinetic + diags(V_harm + 0j, 0, shape=(Nx, Nx))).real
+H_anharm = (T_kinetic + diags(V_anharm + 0j, 0, shape=(Nx, Nx))).real
 
 # Compute first 15 eigenvalues
 n_eigs = 15
@@ -347,27 +425,17 @@ case is where the interesting physics happens.
 """
 
 #%%
-# Convert Hamiltonians to complex for the ODE solver
-H = T_kinetic.astype(complex) + diags(V_anharm + 0j, 0, shape=(Nx, Nx))
-H_h = T_kinetic.astype(complex) + diags(V_harm + 0j, 0, shape=(Nx, Nx))
+# Build complex Hamiltonians for time evolution (reusing T_kinetic from above)
+H = T_kinetic + diags(V_anharm + 0j, 0, shape=(Nx, Nx))
+H_h = T_kinetic + diags(V_harm + 0j, 0, shape=(Nx, Nx))
 
-# Initial coherent state
-psi_0 = ((1 / (2 * np.pi * sigma**2))**0.25
-         * np.exp(-(x - x0_displacement)**2 / (4 * sigma**2))
-         + 0j)
-psi_0 /= np.sqrt(np.sum(np.abs(psi_0)**2) * dx)
+# psi_0 and T_osc already defined in the animation section
+# Recompute max_dt for the main (larger) anharmonic potential
+max_dt = 2.0 / (2 * hbar**2 / (m * dx**2) + np.max(V_anharm))
 
-print(f"Initial norm: {np.sum(np.abs(psi_0)**2) * dx:.10f}")
-
-# Time parameters
-T_osc = 2 * np.pi / omega
 T_total = 10 * T_osc
 Nt = 600
 t_eval = np.linspace(0, T_total, Nt)
-
-# Stability limit
-max_eigenvalue_estimate = 2 * hbar**2 / (m * dx**2) + np.max(V_anharm)
-max_dt = 2.0 / max_eigenvalue_estimate
 
 def make_rhs(hamiltonian):
     def rhs(t, psi):
@@ -402,11 +470,11 @@ print(f"\nFinal norms — harmonic: {norm_h:.10f}, anharmonic: {norm_a:.10f}")
 ## Comparing Position and Width
 
 Two diagnostics tell us the essential story:
-- $\\langle x \\rangle(t)$: does the center still oscillate like a cosine?
-- $\\sigma_x(t)$: does the width stay constant?
+- $\langle x \rangle(t)$: does the center still oscillate like a cosine?
+- $\sigma_x(t)$: does the width stay constant?
 
 For the harmonic case, Ehrenfest's theorem guarantees
-$\\langle x \\rangle = x_0 \\cos(\\omega t)$ exactly, and the coherent state
+$\langle x \rangle = x_0 \cos(\omega t)$ exactly, and the coherent state
 width is constant. For the anharmonic case, both should deviate.
 """
 
@@ -454,7 +522,9 @@ ax.axhline(0, color='k', linewidth=0.3)
 plt.tight_layout()
 plt.show()
 
+harm_spread = sig_h.max() - sig_h.min()
 print(f"Harmonic width range:   [{sig_h.min():.4f}, {sig_h.max():.4f}] (expected constant ~{sigma:.4f})")
+print(f"  Harmonic width spread: {harm_spread:.6f} (grid artifact — increase grid_points_per_unit to reduce)")
 print(f"Anharmonic width range: [{sig_a.min():.4f}, {sig_a.max():.4f}]")
 print(f"Max |position diff|:    {np.max(np.abs(x_a - x_h)):.3f}")
 
@@ -463,12 +533,12 @@ print(f"Max |position diff|:    {np.max(np.abs(x_a - x_h)):.3f}")
 ## Watching the Wave Packet Break Apart
 
 Numbers confirm the effect; now let's *see* it. Below are snapshots of
-$|\\psi(x,t)|^2$ at four times during the evolution. The gray Gaussian is the
+$|\psi(x,t)|^2$ at four times during the evolution. The gray Gaussian is the
 harmonic case (which always looks the same); the blue curve is the anharmonic
 case.
 
 In the Dirac picture, what's happening is that the coefficients $c_n$ in
-$|\\psi(t)\\rangle = \\sum_n c_n e^{-iE_n t/\\hbar}|n\\rangle$ are acquiring
+$|\psi(t)\rangle = \sum_n c_n e^{-iE_n t/\hbar}|n\rangle$ are acquiring
 phases that no longer cancel. The interference between energy eigenstates
 creates the multi-peaked structure you see.
 """
@@ -511,23 +581,23 @@ on the energy spectrum.
 A powerful tool for this question is the **autocorrelation function**:
 
 $$
-C(t) = |\\langle \\psi(0) | \\psi(t) \\rangle|^2
+C(t) = |\langle \psi(0) | \psi(t) \rangle|^2
 $$
 
 This measures the overlap between the current state and the initial state. When
 $C(t) = 1$, the state has returned to its starting point (up to a global phase).
-When $C(t) \\approx 0$, the state has spread out so much that it has essentially
+When $C(t) \approx 0$, the state has spread out so much that it has essentially
 no overlap with the original localized wave packet.
 
 In the energy basis, the autocorrelation has a clean form:
 
 $$
-\\langle\\psi(0)|\\psi(t)\\rangle = \\sum_n |c_n|^2 e^{-iE_n t/\\hbar}
+\langle\psi(0)|\psi(t)\rangle = \sum_n |c_n|^2 e^{-iE_n t/\hbar}
 $$
 
 This is a sum of oscillating terms. For the harmonic oscillator, all
-frequencies are multiples of $\\omega$, so $C(t)$ is exactly periodic with
-period $T = 2\\pi/\\omega$. For the anharmonic oscillator, the frequencies
+frequencies are multiples of $\omega$, so $C(t)$ is exactly periodic with
+period $T = 2\pi/\omega$. For the anharmonic oscillator, the frequencies
 are incommensurate — but they may *approximately* realign at certain times,
 producing **quantum revivals**.
 """
@@ -573,20 +643,20 @@ print(f"Anharmonic min autocorrelation: {autocorr_a.min():.4f}")
 
 The autocorrelation is decaying, but will it come back? The theory of quantum
 revivals tells us that for a system with energy levels $E_n$ that can be
-expanded to second order around the mean quantum number $\\bar n$:
+expanded to second order around the mean quantum number $\bar n$:
 
 $$
-E_n \\approx E_{\\bar n} + E'(\\bar n)(n - \\bar n) + \\tfrac{1}{2} E''(\\bar n)(n - \\bar n)^2
+E_n \approx E_{\bar n} + E'(\bar n)(n - \bar n) + \tfrac{1}{2} E''(\bar n)(n - \bar n)^2
 $$
 
 the wave packet reassembles at the **revival time**:
 
 $$
-T_{\\text{rev}} = \\frac{2\\pi}{|E''(\\bar n)| / \\hbar}
+T_{\text{rev}} = \frac{2\pi}{|E''(\bar n)| / \hbar}
 $$
 
-For our coherent state at $x_0 = 3$ with $\\omega = 1$, the mean quantum number
-is $\\bar n = x_0^2 m\\omega / (2\\hbar) \\approx 4.5$. Let's estimate the revival
+For our coherent state at $x_0 = 3$ with $\omega = 1$, the mean quantum number
+is $\bar n = x_0^2 m\omega / (2\hbar) \approx 4.5$. Let's estimate the revival
 time from the numerically computed eigenvalues:
 """
 
@@ -661,8 +731,8 @@ else:
 
 Let's look at the probability density at several moments during the long
 evolution: the initial state, after the wave packet has spread, near the
-predicted revival time, and near any fractional revivals (at $T_{\\text{rev}}/2$,
-$T_{\\text{rev}}/3$, etc.) where the wave packet might split into multiple
+predicted revival time, and near any fractional revivals (at $T_{\text{rev}}/2$,
+$T_{\text{rev}}/3$, etc.) where the wave packet might split into multiple
 copies of itself:
 """
 
@@ -739,12 +809,14 @@ ax.set_ylabel(r'$\sigma_x$')
 ax.set_title('Wave packet width')
 ax.grid(True, alpha=0.2)
 
-# Energy
+# Energy (relative deviation from initial value — should be flat at zero)
 ax = axes[2]
-ax.plot(t_long / T_osc, E_long, 'goldenrod', linewidth=0.8)
+E_rel = (E_long - E_long[0]) / E_long[0]
+ax.plot(t_long / T_osc, E_rel, 'goldenrod', linewidth=0.8)
 ax.axvline(T_rev / T_osc, color='coral', linestyle='--', linewidth=0.8, alpha=0.5)
-ax.set_ylabel(r'$\langle E \rangle$')
-ax.set_title('Total energy (should be conserved)')
+ax.axhline(0, color='k', linewidth=0.3)
+ax.set_ylabel(r'$(\langle E \rangle - E_0) / E_0$')
+ax.set_title(f'Energy conservation (relative drift)')
 ax.grid(True, alpha=0.2)
 
 # Autocorrelation
@@ -773,25 +845,25 @@ print(f"Energy conservation: E(0) = {E_long[0]:.6f}, E(end) = {E_long[-1]:.6f}, 
 
 **The harmonic oscillator is special.** Its evenly-spaced energy levels mean
 that a coherent state (displaced Gaussian) oscillates forever without
-spreading — the phases $e^{-iE_n t/\\hbar}$ all realign perfectly every period.
+spreading — the phases $e^{-iE_n t/\hbar}$ all realign perfectly every period.
 This is why it behaves so classically.
 
 **Anharmonicity breaks this.** Even a small quartic perturbation makes the
 energy levels unequally spaced. The phases drift apart, causing the wave packet
 to spread and develop interference fringes. In Dirac language:
-$|\\psi(t)\\rangle = \\sum_n c_n e^{-iE_n t/\\hbar}|n\\rangle$ loses coherence
+$|\psi(t)\rangle = \sum_n c_n e^{-iE_n t/\hbar}|n\rangle$ loses coherence
 because the $e^{-iE_n t}$ factors no longer periodically realign.
 
 **But quantum mechanics is unitary.** The spreading is reversible — information
 about the initial state isn't lost, just scrambled across many energy
-eigenstates. The autocorrelation function $|\\langle\\psi(0)|\\psi(t)\\rangle|^2$
+eigenstates. The autocorrelation function $|\langle\psi(0)|\psi(t)\rangle|^2$
 tracks this: it drops when the wave packet disperses but can partially recover
-at the revival time $T_{\\text{rev}} = 2\\pi\\hbar / |E''(\\bar n)|$.
+at the revival time $T_{\text{rev}} = 2\pi\hbar / |E''(\bar n)|$.
 
 **Dirac notation clarifies the mechanism.** Without it, you'd see a function
-$\\psi(x,t)$ doing complicated things and have no clean way to explain *why*.
-With $|\\psi\\rangle = \\sum_n c_n |n\\rangle$, the entire story reduces to
+$\psi(x,t)$ doing complicated things and have no clean way to explain *why*.
+With $|\psi\rangle = \sum_n c_n |n\rangle$, the entire story reduces to
 phase accumulation in the energy basis. The position representation
-$\\psi(x,t) = \\langle x|\\psi(t)\\rangle$ is just one way to visualize a state
-whose essential dynamics are captured by the eigenvalue structure of $\\hat{H}$.
+$\psi(x,t) = \langle x|\psi(t)\rangle$ is just one way to visualize a state
+whose essential dynamics are captured by the eigenvalue structure of $\hat{H}$.
 """
