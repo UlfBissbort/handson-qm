@@ -593,4 +593,175 @@ ax.grid(True, alpha=0.2)
 fig.suptitle('Harmonic oscillator dynamics — expectation values', fontsize=13, y=1.01)
 plt.tight_layout()
 plt.show()
-# %%
+
+#%%
+"""
+## How Motion is Encoded: The Phase of $\psi$
+
+In classical mechanics, position and velocity are independent quantities — you
+specify both to define the state. In quantum mechanics, the wave function
+$\psi(x,t)$ encodes *everything*: both where the particle is likely to be
+found *and* how it's moving.
+
+The secret is in the **complex phase**. We can always write:
+
+$$
+\psi(x,t) = |\psi(x,t)| e^{i\phi(x,t)}
+$$
+
+The amplitude $|\psi|$ determines the probability density (where the particle
+is). The phase $\phi(x)$ determines the motion. Specifically, the local
+wavenumber $k(x) = \partial\phi/\partial x$ is related to the local momentum
+by $p = \hbar k$. When the wave packet moves to the right, $\phi(x)$ increases
+with $x$ — the real and imaginary parts of $\psi$ oscillate rapidly in space.
+When the packet is momentarily at rest (at the classical turning points), the
+phase is nearly flat and $\psi$ is approximately real.
+
+Let's see this directly. We'll look at the real and imaginary parts of $\psi$
+at four key moments in one oscillation cycle:
+"""
+
+#%%
+# Snapshots at four key times: t = 0, T/4, T/2, 3T/4
+snapshot_indices = [0, Nt//4, Nt//2, 3*Nt//4]
+snapshot_labels = ['t = 0 (at rest, x = +5)', 't = T/4 (max speed, x = 0)',
+                   't = T/2 (at rest, x = -5)', 't = 3T/4 (max speed, x = 0)']
+
+fig, axes = plt.subplots(4, 1, figsize=(10, 10), sharex=True)
+
+for ax, idx, label in zip(axes, snapshot_indices, snapshot_labels):
+    psi_t = solution.y[:, idx]
+    ax.fill_between(x, np.abs(psi_t)**2, alpha=0.15, color='gray')
+    ax.plot(x, np.real(psi_t), 'steelblue', linewidth=1.2, label=r'Re($\psi$)')
+    ax.plot(x, np.imag(psi_t), 'coral', linewidth=1.2, label=r'Im($\psi$)')
+    ax.plot(x, np.abs(psi_t), 'k-', linewidth=0.5, alpha=0.4, label=r'$|\psi|$')
+    ax.set_ylabel(r'$\psi(x)$')
+    ax.set_title(label, fontsize=10)
+    ax.set_xlim(-L, L)
+    ax.set_ylim(-0.8, 0.8)
+    ax.axhline(0, color='k', linewidth=0.3)
+    ax.grid(True, alpha=0.15)
+
+axes[0].legend(loc='upper left', fontsize=8, ncol=3)
+axes[-1].set_xlabel('x')
+fig.suptitle(r'Real and imaginary parts of $\psi$ during one period', fontsize=12, y=1.01)
+plt.tight_layout()
+plt.show()
+
+#%%
+"""
+Notice the pattern:
+- At $t = 0$ and $t = T/2$, the packet is at the turning points (maximum
+  displacement, zero velocity). $\psi$ is nearly real — the imaginary part is
+  negligible and there's no spatial oscillation. The phase is flat.
+- At $t = T/4$ and $t = 3T/4$, the packet is at the center with maximum speed.
+  $\psi$ oscillates rapidly in space — Re and Im form a wave pattern. The wave
+  moves to the left at $T/4$ and to the right at $3T/4$, matching the direction
+  of motion.
+
+This spatial oscillation *is* the momentum. Faster oscillation = higher momentum.
+
+## Probability Current Density
+
+We've seen that motion is encoded in the phase. There's a precise quantity that
+captures this: the **probability current density** $j(x,t)$. It measures the
+rate at which probability flows past a point, just like electrical current
+measures charge flow:
+
+$$
+j(x,t) = \frac{\hbar}{m} \operatorname{Im}\left(\psi^* \frac{\partial\psi}{\partial x}\right)
+$$
+
+This definition comes directly from the continuity equation for probability:
+
+$$
+\frac{\partial |\psi|^2}{\partial t} + \frac{\partial j}{\partial x} = 0
+$$
+
+which says probability is conserved locally — if $|\psi|^2$ decreases
+somewhere, probability must be flowing away through $j$.
+
+On our grid, we compute $j$ using the same derivative matrix $D$ from before:
+$j_i = (\hbar / m) \operatorname{Im}(\psi_i^* (D\psi)_i)$.
+
+Positive $j$ means probability flows to the right; negative means to the left.
+"""
+
+#%%
+# Compute current density at the same four snapshots
+fig, axes = plt.subplots(4, 1, figsize=(10, 10), sharex=True)
+
+for ax, idx, label in zip(axes, snapshot_indices, snapshot_labels):
+    psi_t = solution.y[:, idx]
+    dpsi_dx = D @ psi_t
+    j_current = (hbar / m) * np.imag(np.conj(psi_t) * dpsi_dx)
+    pdf_t = np.abs(psi_t)**2
+
+    ax.fill_between(x, pdf_t / np.max(pdf_t) * np.max(np.abs(j_current)),
+                     alpha=0.1, color='gray', label=r'$|\psi|^2$ (scaled)')
+    ax.plot(x, j_current, 'darkorchid', linewidth=1.5, label='j(x)')
+    ax.set_ylabel('j(x)')
+    ax.set_title(label, fontsize=10)
+    ax.set_xlim(-L, L)
+    ax.axhline(0, color='k', linewidth=0.3)
+    ax.grid(True, alpha=0.15)
+
+axes[0].legend(loc='upper left', fontsize=8, ncol=2)
+axes[-1].set_xlabel('x')
+fig.suptitle('Probability current density at four snapshots', fontsize=12, y=1.01)
+plt.tight_layout()
+plt.show()
+
+#%%
+"""
+The current density confirms the picture: $j$ is zero at the turning
+points (no flow) and maximum at the center crossing (maximum speed). The sign
+flips between $t = T/4$ (moving left) and $t = 3T/4$ (moving right).
+
+Let's watch $j(x,t)$ evolve continuously:
+"""
+
+#%%
+# Animated current density
+from matplotlib.animation import FuncAnimation
+from IPython.display import HTML
+
+# Precompute j(x) for all snapshots
+j_all = np.zeros((Nx, Nt))
+for i in range(Nt):
+    psi_t = solution.y[:, i]
+    dpsi = D @ psi_t
+    j_all[:, i] = (hbar / m) * np.imag(np.conj(psi_t) * dpsi)
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 6), sharex=True)
+
+# Top: probability density
+line_pdf, = ax1.plot(x, pdf[:, 0], 'steelblue', linewidth=1.5)
+V_scale = np.max(pdf) / 20
+ax1.plot(x, V * V_scale, 'k-', linewidth=0.5, alpha=0.3)
+ax1.set_xlim(-L, L)
+ax1.set_ylim(0, np.max(pdf) * 1.1)
+ax1.set_ylabel(r'$|\psi|^2$')
+ax1.grid(True, alpha=0.2)
+title1 = ax1.set_title(f't = 0.00  (period 0.00)')
+
+# Bottom: current density
+j_max = np.max(np.abs(j_all)) * 1.1
+line_j, = ax2.plot(x, j_all[:, 0], 'darkorchid', linewidth=1.5)
+ax2.set_xlim(-L, L)
+ax2.set_ylim(-j_max, j_max)
+ax2.set_xlabel('x')
+ax2.set_ylabel('j(x)')
+ax2.axhline(0, color='k', linewidth=0.3)
+ax2.grid(True, alpha=0.2)
+
+def update_j(i):
+    line_pdf.set_ydata(pdf[:, i])
+    line_j.set_ydata(j_all[:, i])
+    title1.set_text(f't = {t_eval[i]:.2f}  (period {t_eval[i]/T_osc:.2f})')
+    return line_pdf, line_j, title1
+
+anim_j = FuncAnimation(fig, update_j, frames=Nt, interval=33, blit=True)
+plt.close()
+
+HTML(anim_j.to_jshtml())
