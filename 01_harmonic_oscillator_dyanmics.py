@@ -43,7 +43,7 @@ $\sqrt{\hbar / (m\omega)}$ and times in units of $1/\omega$, which keeps all
 our numbers close to 1.
 
 Below are the physical parameters. The `packet_width` scales the initial
-Gaussian relative to the ground state width $\sigma_0 = \sqrt{\hbar/(m\omega)}$.
+Gaussian relative to the ground state width $\sigma_0 = \sqrt{\hbar/(2m\omega)}$.
 When `packet_width = 1.0`, the wave packet has exactly the ground state shape
 — if you displace it from the center it will oscillate back and forth without
 changing shape (try it!). Values other than 1 cause the packet to "breathe" as
@@ -202,7 +202,7 @@ $$
 
 The width $\sigma$ determines how spread out the packet is. For the harmonic
 oscillator, the ground state has a specific width
-$\sigma_0 = \sqrt{\hbar/(m\omega)}$. When we use exactly this width (i.e.
+$\sigma_0 = \sqrt{\hbar/(2m\omega)}$. When we use exactly this width (i.e.
 `packet_width = 1.0`), something special happens: the displaced packet
 oscillates back and forth *without changing its shape*. For any other width, the
 packet will "breathe" — alternately squeezing and stretching as it oscillates.
