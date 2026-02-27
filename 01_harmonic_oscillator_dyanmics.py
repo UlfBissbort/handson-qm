@@ -60,7 +60,7 @@ packet_width = 1.0          # 1.0 = ground state width (shape-preserving)
 x0_displacement = 5.0       # initial displacement from center
 
 # Derived
-sigma0 = np.sqrt(hbar / (m * omega))   # ground state width
+sigma0 = np.sqrt(hbar / (2 * m * omega))   # ground state width
 sigma = packet_width * sigma0           # actual packet width
 
 print(f"Ground state width σ₀ = {sigma0:.4f}")
@@ -476,6 +476,15 @@ p_classical = -m * omega * x0_displacement * np.sin(omega * t_eval)
 print(f"<p> at t=0: {p_expect[0]:.4f} (expected 0.0)")
 print(f"Max |<p>|:  {np.max(np.abs(p_expect)):.4f} (expected {m*omega*x0_displacement:.1f})")
 
+plt.plot(t_eval, p_expect, 'coral', linewidth=1.5, label=r'$\langle p \rangle$ (quantum)')
+plt.plot(t_eval, p_classical, 'k--', linewidth=0.8, alpha=0.7, label=r'$-m\omega x_0 \sin(\omega t)$ (classical)')
+plt.grid(True, alpha=0.3)
+plt.xlabel('Time')
+plt.ylabel(r'$\langle p \rangle$', rotation=0)
+plt.title('Momentum expectation value vs. time')
+plt.legend()
+plt.show()
+
 #%%
 """
 ## Wave Packet Width
@@ -584,6 +593,7 @@ ax.grid(True, alpha=0.2)
 ax = axes[1, 1]
 ax.plot(t_eval, E_expect, 'goldenrod', linewidth=1.5)
 ax.axhline(E_analytical, color='k', linestyle='--', linewidth=0.8, alpha=0.5, label='analytical')
+ax.set_ylim(E_analytical * 0.95, E_analytical * 1.05) # 5% margin
 ax.set_xlabel('Time')
 ax.set_ylabel(r'$\langle E \rangle$')
 ax.set_title('Total energy')
@@ -687,6 +697,7 @@ $j_i = (\hbar / m) \operatorname{Im}(\psi_i^* (D\psi)_i)$.
 Positive $j$ means probability flows to the right; negative means to the left.
 """
 
+
 #%%
 # Compute current density at the same four snapshots
 fig, axes = plt.subplots(4, 1, figsize=(10, 10), sharex=True)
@@ -703,6 +714,8 @@ for ax, idx, label in zip(axes, snapshot_indices, snapshot_labels):
     ax.set_ylabel('j(x)')
     ax.set_title(label, fontsize=10)
     ax.set_xlim(-L, L)
+    j_max = np.max(np.abs(j_current)) * 1.1
+    ax.set_ylim(-j_max, j_max)
     ax.axhline(0, color='k', linewidth=0.3)
     ax.grid(True, alpha=0.15)
 
