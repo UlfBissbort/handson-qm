@@ -623,7 +623,10 @@ at four key moments in one oscillation cycle:
 
 #%%
 # Snapshots at four key times: t = 0, T/4, T/2, 3T/4
-snapshot_indices = [0, Nt//4, Nt//2, 3*Nt//4]
+# Use time-based index lookup (not Nt fractions) so the correct times are
+# sampled regardless of how many periods T_total covers.
+snapshot_times = [0, T_osc/4, T_osc/2, 3*T_osc/4]
+snapshot_indices = [np.argmin(np.abs(t_eval - t)) for t in snapshot_times]
 snapshot_labels = ['t = 0 (at rest, x = +5)', 't = T/4 (max speed, x = 0)',
                    't = T/2 (at rest, x = -5)', 't = 3T/4 (max speed, x = 0)']
 
@@ -689,20 +692,27 @@ Positive $j$ means probability flows to the right; negative means to the left.
 
 #%%
 # Compute current density at the same four snapshots
-fig, axes = plt.subplots(4, 1, figsize=(10, 10), sharex=True)
-
-for ax, idx, label in zip(axes, snapshot_indices, snapshot_labels):
+# Pre-compute j at all snapshots to find global max for consistent y-limits
+j_snapshots = []
+for idx in snapshot_indices:
     psi_t = solution.y[:, idx]
     dpsi_dx = D @ psi_t
-    j_current = (hbar / m) * np.imag(np.conj(psi_t) * dpsi_dx)
+    j_snapshots.append((hbar / m) * np.imag(np.conj(psi_t) * dpsi_dx))
+j_ylim = max(np.max(np.abs(j)) for j in j_snapshots) * 1.1
+
+fig, axes = plt.subplots(4, 1, figsize=(10, 10), sharex=True)
+
+for ax, idx, label, j_current in zip(axes, snapshot_indices, snapshot_labels, j_snapshots):
+    psi_t = solution.y[:, idx]
     pdf_t = np.abs(psi_t)**2
 
-    ax.fill_between(x, pdf_t / np.max(pdf_t) * np.max(np.abs(j_current)),
+    ax.fill_between(x, pdf_t / np.max(pdf_t) * j_ylim,
                      alpha=0.1, color='gray', label=r'$|\psi|^2$ (scaled)')
     ax.plot(x, j_current, 'darkorchid', linewidth=1.5, label='j(x)')
     ax.set_ylabel('j(x)')
     ax.set_title(label, fontsize=10)
     ax.set_xlim(-L, L)
+    ax.set_ylim(-j_ylim, j_ylim)
     ax.axhline(0, color='k', linewidth=0.3)
     ax.grid(True, alpha=0.15)
 
