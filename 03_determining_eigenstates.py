@@ -326,3 +326,46 @@ Notice also how the oscillations get shorter in wavelength as $n$ increases. Thi
 """
 
 #%%
+r"""
+## Why Are These Wave Functions Real?
+
+You may have noticed something: our entire shooting calculation used only real numbers. In Notebooks 1 and 2, the wave function $\psi(x,t)$ was complex — we needed both real and imaginary parts to encode motion. But the eigenstates $\phi_n(x)$ we just found are purely real. What changed?
+
+Look at the two equations side by side. The time-dependent Schrodinger equation has an $i$ out front:
+
+$$
+i\hbar \frac{\partial \psi}{\partial t} = \hat{H}\psi
+$$
+
+That $i$ is what forces $\psi$ to be complex — even if you start with a real wave function, the time derivative immediately generates an imaginary part. Remember Notebook 1: we saw that the complex phase of $\psi(x,t)$ is what encodes momentum. When the wave packet moved to the right, the real and imaginary parts oscillated rapidly in space; when it sat at a turning point with zero velocity, $\psi$ was nearly real. The complex structure of $\psi(x,t)$ is inseparable from the dynamics.
+
+But an eigenstate *doesn't move*. It's stationary — the probability density $|\phi(x)|^2$ is constant in time. There is no momentum to encode, no direction of motion, so the wave function doesn't need an imaginary part. And indeed, the time-independent equation we've been solving has no $i$ anywhere:
+
+$$
+-\frac{\hbar^2}{2m}\frac{d^2\phi}{dx^2} + V(x)\phi = E\phi
+$$
+
+When $V(x)$ is real, every coefficient in this equation is real. If $\phi(x)$ is a real function, the left side is real and the right side is real — there's nothing to generate an imaginary part. Real solutions exist.
+
+### The Linear Algebra Perspective
+
+This has a clean analogue in matrix language. In Notebook 1, we represented $\hat{H}$ as a matrix on our spatial grid. The finite-difference Laplacian is a real symmetric tridiagonal matrix. The potential $V(x)$ contributes a real diagonal matrix. So the full Hamiltonian matrix $H$ is **real symmetric** — not just Hermitian, but actually real.
+
+This is the key distinction from linear algebra:
+- **Hermitian** matrices ($H = H^\dagger$) are guaranteed to have real *eigenvalues*. But their eigenvectors may have complex entries.
+- **Real symmetric** matrices ($H = H^T$, with all real entries) are a special case of Hermitian. They also have real eigenvalues — but additionally, the eigenvectors can always be chosen to be purely real.
+
+Our Hamiltonian falls in the second, more restrictive category. That's why we could work with real numbers throughout.
+
+### The Physics: Time-Reversal Symmetry
+
+The deeper reason is **time-reversal symmetry**. For a particle in a real potential with no magnetic field, the physics looks the same whether time runs forward or backward. Mathematically, if $\phi(x)$ is an eigenstate with energy $E$, then its complex conjugate $\phi^*(x)$ is also an eigenstate with the same energy (you can verify this by conjugating both sides of the eigenvalue equation — nothing changes when all coefficients are real). If the eigenvalue $E$ is non-degenerate, $\phi$ and $\phi^*$ must be the same state up to an overall constant — which forces $\phi$ to be real (up to a global phase we can absorb into the normalization).
+
+### When Does This Break Down?
+
+Put a charged particle in a magnetic field. The vector potential $\vec{A}$ enters the Hamiltonian through the kinetic energy $(p - eA)^2 / 2m$, which in position representation introduces terms proportional to $i\hbar A(x) \frac{d}{dx}$. The Hamiltonian matrix is still **Hermitian** — eigenvalues are still real, as they must be for any observable. But it is no longer real symmetric: it has imaginary off-diagonal elements. Time-reversal symmetry is broken, $\phi$ and $\phi^*$ are genuinely different states, and the eigenfunctions are irreducibly complex.
+
+The takeaway: eigenvalues are always real (that's the Hermitian guarantee). Eigenstates are real only when the Hamiltonian has time-reversal symmetry — which for us means a real potential and no magnetic field.
+"""
+
+#%%
