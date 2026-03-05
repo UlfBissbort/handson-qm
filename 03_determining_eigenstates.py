@@ -383,6 +383,77 @@ plt.show()
 
 #%%
 r"""
+## Completeness: Are 10 Eigenstates Enough?
+
+Orthonormality tells us the eigenstates are "well-behaved" — unit length and mutually perpendicular. But it doesn't tell us whether there are *enough* of them. In 3D, you could have two perfectly orthonormal vectors $\hat{e}_x$ and $\hat{e}_y$, but they can't represent a vector with a $z$-component. You need all three to span the space.
+
+The analogous property for eigenstates is **completeness**: the set $\{|\phi_n\rangle\}$ is complete if *any* square-integrable function can be written as a sum of eigenstates:
+
+$$
+|f\rangle = \sum_{n=0}^{\infty} c_n |\phi_n\rangle \quad \text{where} \quad c_n = \langle \phi_n | f \rangle
+$$
+
+In principle this requires infinitely many eigenstates. But we can test how well a *finite* set does: pick a function that looks nothing like any eigenstate, expand it in our 10 eigenstates, and see how close the reconstruction gets. If 10 states capture almost all of the function, completeness is working — we just haven't needed the higher terms yet.
+
+Let's try a displaced Gaussian — the kind of wave packet we evolved in Notebook 1 — centered at $x_0 = 1.5$ with width $\sigma = 0.5$. This is clearly not an eigenstate of our anharmonic potential, so it will need contributions from many $|\phi_n\rangle$ to be represented.
+"""
+
+#%%
+# Test function: displaced narrow Gaussian
+x0_test, sig_test = 1.5, 0.5
+f_test = np.exp(-(x_wf_span - x0_test)**2 / (2 * sig_test**2))
+f_test /= np.sqrt(np.sum(f_test[mask]**2) * dx_wf)
+
+# Expansion coefficients c_n = <phi_n | f>
+c_n = np.array([np.sum(eigenstates_trunc[n] * f_test[mask]) * dx_wf for n in range(M)])
+
+# Reconstruct with increasing number of eigenstates
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: progressive reconstruction
+ax1.plot(x_wf_span[mask], f_test[mask], 'k-', linewidth=2, label='Target $f(x)$')
+for M_show in [1, 3, 5, 10]:
+    f_approx = sum(c_n[n] * eigenstates_trunc[n] for n in range(M_show))
+    ax1.plot(x_wf_span[mask], f_approx, linewidth=1.2, alpha=0.8,
+             label=f'{M_show} eigenstates')
+ax1.set_xlabel('x')
+ax1.set_ylabel(r'$f(x)$')
+ax1.set_title('Eigenstate expansion of a displaced Gaussian')
+ax1.legend(fontsize=8)
+ax1.grid(True, alpha=0.3)
+
+# Right: residual norm and captured fraction vs M
+residuals = []
+captured = []
+for M_cut in range(1, M + 1):
+    f_approx = sum(c_n[n] * eigenstates_trunc[n] for n in range(M_cut))
+    residuals.append(np.sum((f_test[mask] - f_approx)**2) * dx_wf)
+    captured.append(np.sum(c_n[:M_cut]**2))
+
+ax2.semilogy(range(1, M + 1), residuals, 'o-', color='coral', linewidth=1.5,
+             label=r'$\|f - f_M\|^2$')
+ax2.set_xlabel('Number of eigenstates $M$')
+ax2.set_ylabel('Residual norm squared')
+ax2.set_title('Convergence of the expansion')
+ax2.set_xticks(range(1, M + 1))
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+
+print(f"Fraction of norm captured by {M} eigenstates: {captured[-1]:.6f}")
+print(f"Residual: {residuals[-1]:.6f}")
+
+#%%
+r"""
+With just 10 eigenstates, we capture 99.9% of the norm and the reconstruction is nearly indistinguishable from the original. The remaining 0.1% lives in higher eigenstates $|\phi_{10}\rangle, |\phi_{11}\rangle, \ldots$ that we haven't computed. Add more eigenstates and the residual keeps shrinking — that's completeness at work.
+
+This is exactly the decomposition that drives time evolution. If we wanted to evolve this Gaussian in time, we'd write $|\psi(t)\rangle = \sum_n c_n e^{-iE_n t/\hbar}|\phi_n\rangle$ — each eigenstate just picks up a phase, and the $c_n$ we just computed tell us how much of each eigenstate is present. The richer the structure of the wave packet, the more eigenstates it needs, and the more complex the time evolution becomes.
+"""
+
+#%%
+r"""
 ## Why Are These Wave Functions Real?
 
 You may have noticed something: our entire shooting calculation used only real numbers. In Notebooks 1 and 2, the wave function $\psi(x,t)$ was complex — we needed both real and imaginary parts to encode motion. But the eigenstates $\phi_n(x)$ we just found are purely real. What changed?
