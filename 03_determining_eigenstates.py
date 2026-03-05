@@ -204,3 +204,125 @@ On the right side, the crossings keep coming. As $E$ increases the classically a
 """
 
 #%%
+r"""
+## Pinning Down the Eigenvalues
+
+We know the eigenvalues live at the zero crossings. To find them precisely, we can use a **root-finding algorithm**. Given a bracket $[E_a, E_b]$ where $\phi(x_\text{probe})$ changes sign, find the $E$ where it equals zero.
+
+We'll use **Brent's method** (`brentq` from `scipy.optimize`) — it combines the safety of bisection with the speed of inverse quadratic interpolation. Since the root is bracketed, convergence is guaranteed; the only question is how many iterations it takes (typically around 10).
+
+The strategy: scan upward in energy with a coarse step of $\Delta E = 0.5$, which is safely below the minimum eigenvalue spacing of any confining potential with $\omega = 1$. Each time $\phi$ changes sign, we've bracketed an eigenvalue — hand it to Brent's method and move on. Stop once we've collected $M$ eigenvalues.
+
+We also switch from `solve_ivp` to `odeint` for the ODE integration — for this kind of smooth, non-stiff problem it's roughly 40x faster.
+"""
+
+#%%
+from scipy.integrate import odeint
+from scipy.optimize import brentq
+
+def find_eigenvalues(lam, M=10, dE=0.5):
+    """Find the lowest M eigenvalues of V(x) = 0.5*x^2 + lam*x^4."""
+    x_probe = 7.0
+    x_span = np.linspace(-x_probe, x_probe, 2000)
+
+    def phi_at_probe(E):
+        def ode(y, x):
+            return [y[1], (2 * m / hbar**2) * (0.5 * m * omega**2 * x**2 + lam * x**4 - E) * y[0]]
+        sol = odeint(ode, [1e-5, 1e-3], x_span)
+        return sol[-1, 0]
+
+    eigenvalues = []
+    E = 0.0
+    phi_prev = phi_at_probe(E)
+
+    while len(eigenvalues) < M:
+        E += dE
+        phi_curr = phi_at_probe(E)
+        if np.sign(phi_curr) != np.sign(phi_prev) and np.sign(phi_prev) != 0:
+            E_root = brentq(phi_at_probe, E - dE, E, xtol=1e-10)
+            eigenvalues.append(E_root)
+        phi_prev = phi_curr
+
+    return np.array(eigenvalues)
+
+# Find the first 10 eigenvalues
+M = 10
+E_n = find_eigenvalues(lam, M=M)
+
+print(f"First {M} eigenvalues (lam = {lam}):")
+for n, E in enumerate(E_n):
+    print(f"  E_{n} = {E:.8f}")
+
+# Compare to harmonic oscillator
+E_harmonic = find_eigenvalues(0.0, M=M)
+print(f"\nEffect of anharmonicity (lam = {lam}):")
+print(f"  {'n':>3}  {'Harmonic':>12}  {'Anharmonic':>12}  {'Shift':>10}")
+for n in range(M):
+    shift = E_n[n] - E_harmonic[n]
+    print(f"  {n:3d}  {E_harmonic[n]:12.6f}  {E_n[n]:12.6f}  {shift:+10.6f}")
+
+#%%
+r"""
+## The Eigenstates Themselves
+
+We've found the eigenvalues — now let's look at the wave functions. For each $E_n$, we integrate the ODE one more time and keep the full solution $\phi_n(x) = \langle x | \phi_n \rangle$. Since the ODE is linear, the overall amplitude is arbitrary; we normalize each eigenstate so that $\int |\phi_n(x)|^2 dx = 1$.
+"""
+
+#%%
+# Compute the first 4 eigenstates
+n_show = 4
+x_wf_span = np.linspace(x_start, x_end, 2000)
+
+eigenstates = []
+for n in range(n_show):
+    def ode(y, x, E=E_n[n]):
+        return [y[1], (2 * m / hbar**2) * (V(x) - E) * y[0]]
+    sol = odeint(ode, [1e-5, 1e-3], x_wf_span)
+    phi_n = sol[:, 0]
+    # Normalize: int |phi|^2 dx = 1
+    dx_wf = x_wf_span[1] - x_wf_span[0]
+    phi_n /= np.sqrt(np.sum(phi_n**2) * dx_wf)
+    eigenstates.append(phi_n)
+
+# Plot in the same style as the first shooting plot
+colors = ['steelblue', 'coral', 'seagreen', 'goldenrod']
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 7), sharex=True,
+                                gridspec_kw={'height_ratios': [1, 2]})
+
+# Top: potential with energy levels
+ax1.plot(x_wf_span, V(x_wf_span), 'k-', linewidth=1.5, label='V(x)')
+for n in range(n_show):
+    ax1.axhline(E_n[n], color=colors[n], linestyle='--', linewidth=1,
+                label=f'$E_{n}$ = {E_n[n]:.4f}')
+ax1.set_ylabel('Energy')
+ax1.set_ylim(0, 10)
+ax1.legend(fontsize=8)
+ax1.grid(True, alpha=0.3)
+ax1.set_title(f'First {n_show} eigenstates of the anharmonic oscillator ($\\lambda$ = {lam})')
+
+# Bottom: wave functions
+for n in range(n_show):
+    ax2.plot(x_wf_span, eigenstates[n], color=colors[n], linewidth=1.5,
+             label=f'$\\phi_{n}(x)$')
+ax2.axhline(0, color='k', linewidth=0.3)
+ax2.set_xlabel('x')
+ax2.set_ylabel(r'$\phi_n(x)$')
+ax2.legend(fontsize=8)
+ax2.set_ylim(-1, 1)
+ax2.grid(True, alpha=0.3)
+ax2.set_xlim(x_start, x_end)
+
+plt.tight_layout()
+plt.show()
+
+#%%
+r"""
+You can see the residual divergence creeping in at the edges — our eigenvalues are accurate to $\sim 10^{-10}$, not mathematically exact, so a tiny admixture of the growing exponential eventually takes over.
+
+The wave functions reveal a beautiful pattern. Each successive eigenstate has exactly one more node (zero crossing) than the last: $\phi_0$ has none, $\phi_1$ has one, $\phi_2$ has two, $\phi_3$ has three. This is a general theorem — the $n$-th eigenstate of a one-dimensional potential always has exactly $n$ nodes.
+
+Notice also how the oscillations get shorter in wavelength as $n$ increases. This makes physical sense: a higher eigenvalue means more total energy, and since $E = T + V$, the kinetic energy $T = E - V(x)$ is larger in the allowed region. In the position representation, kinetic energy is encoded in curvature — faster spatial oscillation means higher momentum, and higher momentum means higher kinetic energy. The de Broglie relation $p = \hbar k = h/\lambda$ makes this precise: shorter wavelength $\lambda$ corresponds to higher momentum $p$, and thus higher kinetic energy $p^2/2m$.
+"""
+
+#%%
