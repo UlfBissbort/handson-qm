@@ -408,13 +408,16 @@ f_test /= np.sqrt(np.sum(f_test[mask]**2) * dx_wf)
 c_n = np.array([np.sum(eigenstates_trunc[n] * f_test[mask]) * dx_wf for n in range(M)])
 
 # Reconstruct with increasing number of eigenstates
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+x_trunc = x_wf_span[mask]
+colors_10 = [plt.get_cmap('tab10')(i) for i in range(M)]
 
-# Left: progressive reconstruction
-ax1.plot(x_wf_span[mask], f_test[mask], 'k-', linewidth=2, label='Target $f(x)$')
+fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 12))
+
+# Top: progressive reconstruction
+ax1.plot(x_trunc, f_test[mask], 'k-', linewidth=2, label='Target $f(x)$')
 for M_show in [1, 3, 5, 10]:
     f_approx = sum(c_n[n] * eigenstates_trunc[n] for n in range(M_show))
-    ax1.plot(x_wf_span[mask], f_approx, linewidth=1.2, alpha=0.8,
+    ax1.plot(x_trunc, f_approx, linewidth=1.2, alpha=0.8,
              label=f'{M_show} eigenstates')
 ax1.set_xlabel('x')
 ax1.set_ylabel(r'$f(x)$')
@@ -422,7 +425,19 @@ ax1.set_title('Eigenstate expansion of a displaced Gaussian')
 ax1.legend(fontsize=8)
 ax1.grid(True, alpha=0.3)
 
-# Right: residual norm and captured fraction vs M
+# Middle: individual components c_n * phi_n(x)
+for n in range(M):
+    ax2.plot(x_trunc, c_n[n] * eigenstates_trunc[n], color=colors_10[n],
+             linewidth=1.2, label=f'$c_{n} \\phi_{n}$')
+ax2.plot(x_trunc, f_test[mask], 'k--', linewidth=1.5, alpha=0.4, label='Target')
+ax2.axhline(0, color='k', linewidth=0.3)
+ax2.set_xlabel('x')
+ax2.set_ylabel(r'$c_n \phi_n(x)$')
+ax2.set_title('Individual eigenstate contributions (sum = reconstruction)')
+ax2.legend(fontsize=7, ncol=4, loc='upper left')
+ax2.grid(True, alpha=0.3)
+
+# Bottom: residual norm vs M
 residuals = []
 captured = []
 for M_cut in range(1, M + 1):
@@ -430,14 +445,14 @@ for M_cut in range(1, M + 1):
     residuals.append(np.sum((f_test[mask] - f_approx)**2) * dx_wf)
     captured.append(np.sum(c_n[:M_cut]**2))
 
-ax2.semilogy(range(1, M + 1), residuals, 'o-', color='coral', linewidth=1.5,
+ax3.semilogy(range(1, M + 1), residuals, 'o-', color='coral', linewidth=1.5,
              label=r'$\|f - f_M\|^2$')
-ax2.set_xlabel('Number of eigenstates $M$')
-ax2.set_ylabel('Residual norm squared')
-ax2.set_title('Convergence of the expansion')
-ax2.set_xticks(range(1, M + 1))
-ax2.grid(True, alpha=0.3)
-ax2.legend()
+ax3.set_xlabel('Number of eigenstates $M$')
+ax3.set_ylabel('Residual norm squared')
+ax3.set_title('Convergence of the expansion')
+ax3.set_xticks(range(1, M + 1))
+ax3.grid(True, alpha=0.3)
+ax3.legend()
 
 plt.tight_layout()
 plt.show()
@@ -450,6 +465,79 @@ r"""
 With just 10 eigenstates, we capture 99.9% of the norm and the reconstruction is nearly indistinguishable from the original. The remaining 0.1% lives in higher eigenstates $|\phi_{10}\rangle, |\phi_{11}\rangle, \ldots$ that we haven't computed. Add more eigenstates and the residual keeps shrinking — that's completeness at work.
 
 This is exactly the decomposition that drives time evolution. If we wanted to evolve this Gaussian in time, we'd write $|\psi(t)\rangle = \sum_n c_n e^{-iE_n t/\hbar}|\phi_n\rangle$ — each eigenstate just picks up a phase, and the $c_n$ we just computed tell us how much of each eigenstate is present. The richer the structure of the wave packet, the more eigenstates it needs, and the more complex the time evolution becomes.
+"""
+
+#%%
+r"""
+## Symmetry and Selection Rules
+
+Look back at the eigenstates we plotted: $\phi_0$ and $\phi_2$ are symmetric about $x = 0$ (they satisfy $\phi(-x) = \phi(x)$), while $\phi_1$ and $\phi_3$ are antisymmetric ($\phi(-x) = -\phi(x)$). This isn't a coincidence — it's a consequence of the **reflection symmetry** of the Hamiltonian.
+
+Our potential $V(x) = \frac{1}{2}m\omega^2 x^2 + \lambda x^4$ satisfies $V(-x) = V(x)$. The kinetic energy operator $-\frac{\hbar^2}{2m}\frac{d^2}{dx^2}$ is also unchanged by $x \to -x$. So the full Hamiltonian commutes with the **parity operator** $\hat{P}$ that sends $x \to -x$: $[\hat{H}, \hat{P}] = 0$.
+
+When two operators commute, they can be simultaneously diagonalized — their eigenstates can be chosen to be the same. The eigenvalues of $\hat{P}$ are $+1$ (symmetric) and $-1$ (antisymmetric), since applying $\hat{P}$ twice gives the identity. So every eigenstate of $\hat{H}$ can be chosen to have definite parity: either $\phi_n(-x) = +\phi_n(x)$ or $\phi_n(-x) = -\phi_n(x)$. For our potential, the pattern alternates: even $n$ gives symmetric, odd $n$ gives antisymmetric.
+
+This has a powerful consequence for expansions. The overlap integral $c_n = \int \phi_n^*(x) f(x) dx$ vanishes whenever $\phi_n$ and $f$ have opposite symmetry — the integrand is antisymmetric, so positive and negative contributions cancel exactly. If we expand an antisymmetric function, all the even coefficients ($c_0, c_2, c_4, \ldots$) are exactly zero. The function only "talks to" eigenstates of matching symmetry. Let's see this with an odd function — $f(x) = x e^{-x^2/2}$:
+"""
+
+#%%
+# Antisymmetric test function with a sharp jump at x=0
+f_odd = np.sign(x_wf_span) * np.exp(-x_wf_span**2 / 8)
+f_odd /= np.sqrt(np.sum(f_odd[mask]**2) * dx_wf)
+
+# Expansion coefficients
+c_n_odd = np.array([np.sum(eigenstates_trunc[n] * f_odd[mask]) * dx_wf for n in range(M)])
+
+fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 12))
+
+# Top: progressive reconstruction
+ax1.plot(x_trunc, f_odd[mask], 'k-', linewidth=2,
+         label=r'Target $f(x) = \mathrm{sign}(x) e^{-x^2/8}$')
+for M_show in [1, 3, 5, 10]:
+    f_approx = sum(c_n_odd[n] * eigenstates_trunc[n] for n in range(M_show))
+    ax1.plot(x_trunc, f_approx, linewidth=1.2, alpha=0.8,
+             label=f'{M_show} eigenstates')
+ax1.set_xlabel('x')
+ax1.set_ylabel(r'$f(x)$')
+ax1.set_title('Expanding an antisymmetric function with a sharp jump')
+ax1.legend(fontsize=8)
+ax1.grid(True, alpha=0.3)
+
+# Middle: individual components — even ones should be ~zero
+for n in range(M):
+    ax2.plot(x_trunc, c_n_odd[n] * eigenstates_trunc[n], color=colors_10[n],
+             linewidth=1.2, label=f'$c_{n} \\phi_{n}$')
+ax2.plot(x_trunc, f_odd[mask], 'k--', linewidth=1.5, alpha=0.4, label='Target')
+ax2.axhline(0, color='k', linewidth=0.3)
+ax2.set_xlabel('x')
+ax2.set_ylabel(r'$c_n \phi_n(x)$')
+ax2.set_title('Only odd eigenstates contribute (even ones vanish by symmetry)')
+ax2.legend(fontsize=7, ncol=4, loc='upper left')
+ax2.grid(True, alpha=0.3)
+
+# Bottom: bar chart of |c_n|^2 showing the selection rule
+bar_colors = ['steelblue' if n % 2 == 0 else 'coral' for n in range(M)]
+ax3.bar(range(M), c_n_odd**2, color=bar_colors)
+ax3.set_xlabel('Eigenstate index $n$')
+ax3.set_ylabel(r'$|c_n|^2$')
+ax3.set_title(r'Expansion coefficients: even $n$ (blue) vanish, odd $n$ (red) survive')
+ax3.set_xticks(range(M))
+ax3.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+
+print("Expansion coefficients:")
+for n in range(M):
+    sym = "even (symmetric)" if n % 2 == 0 else "odd  (antisymmetric)"
+    print(f"  c_{n} = {c_n_odd[n]:+.6f}  |c|^2 = {c_n_odd[n]**2:.2e}  [{sym}]")
+print(f"\nFraction of norm captured: {np.sum(c_n_odd**2):.4f}")
+
+#%%
+r"""
+Two things to notice. First, the selection rule works perfectly: all even coefficients are zero to machine precision ($\sim 10^{-15}$). The antisymmetric target function only "talks to" antisymmetric eigenstates — the overlap integral $\int \phi_n^*(x) f(x) dx$ vanishes by symmetry whenever $\phi_n$ is symmetric.
+
+Second, the reconstruction overshoots near the sharp jump at $x = 0$ — the oscillations on either side don't settle down even with 10 eigenstates. This is the **Gibbs phenomenon**, familiar from Fourier series: a finite sum of smooth functions can't perfectly reproduce a discontinuity. It will always overshoot by about 9% of the jump height, no matter how many terms you add. What *does* improve is that the ringing gets pushed into an ever-narrower region around the jump. With our smooth displaced Gaussian above, there was no such problem — smooth functions converge cleanly.
 """
 
 #%%
