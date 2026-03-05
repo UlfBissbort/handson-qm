@@ -465,6 +465,8 @@ r"""
 With just 10 eigenstates, we capture 99.9% of the norm and the reconstruction is nearly indistinguishable from the original. The remaining 0.1% lives in higher eigenstates $|\phi_{10}\rangle, |\phi_{11}\rangle, \ldots$ that we haven't computed. Add more eigenstates and the residual keeps shrinking — that's completeness at work.
 
 This is exactly the decomposition that drives time evolution. If we wanted to evolve this Gaussian in time, we'd write $|\psi(t)\rangle = \sum_n c_n e^{-iE_n t/\hbar}|\phi_n\rangle$ — each eigenstate just picks up a phase, and the $c_n$ we just computed tell us how much of each eigenstate is present. The richer the structure of the wave packet, the more eigenstates it needs, and the more complex the time evolution becomes.
+
+It's worth pausing to appreciate how completeness and orthogonality are different — even opposite — in character. **Completeness** is about *coverage*: do we have enough basis states to reproduce any function? The more eigenstates we include, the easier it gets — each new one lets us capture more detail, like adding more colors to a palette. **Orthogonality** is about *independence*: each basis state contributes something that no combination of the others can. The more eigenstates we have, the harder this is to maintain — it's increasingly difficult to find new directions that are perpendicular to all existing ones. That the energy eigenstates are both complete *and* orthogonal is what makes them such a powerful basis. Completeness means nothing is left out; orthogonality means nothing is redundant.
 """
 
 #%%
