@@ -68,7 +68,9 @@ def schrodinger_ode(x, y, E):
     d2phi = (2 * m / hbar**2) * (V(x) - E) * phi
     return [dphi, d2phi]
 
-# Try an energy between the ground state (~0.51) and first excited state (~1.54)
+# Pick an energy that is NOT an eigenvalue — 4.2 sits between the 3rd (~3.67)
+# and 4th (~4.77) eigenvalues, so the solution will have ~4 oscillations
+# in the allowed region before diverging.
 E_try = 4.2
 
 x_start, x_end = -6.0, 6.0
@@ -479,7 +481,7 @@ Our potential $V(x) = \frac{1}{2}m\omega^2 x^2 + \lambda x^4$ satisfies $V(-x) =
 
 When two operators commute, they can be simultaneously diagonalized — their eigenstates can be chosen to be the same. The eigenvalues of $\hat{P}$ are $+1$ (symmetric) and $-1$ (antisymmetric), since applying $\hat{P}$ twice gives the identity. So every eigenstate of $\hat{H}$ can be chosen to have definite parity: either $\phi_n(-x) = +\phi_n(x)$ or $\phi_n(-x) = -\phi_n(x)$. For our potential, the pattern alternates: even $n$ gives symmetric, odd $n$ gives antisymmetric.
 
-This has a powerful consequence for expansions. The overlap integral $c_n = \int \phi_n^*(x) f(x) dx$ vanishes whenever $\phi_n$ and $f$ have opposite symmetry — the integrand is antisymmetric, so positive and negative contributions cancel exactly. If we expand an antisymmetric function, all the even coefficients ($c_0, c_2, c_4, \ldots$) are exactly zero. The function only "talks to" eigenstates of matching symmetry. Let's see this with an odd function — $f(x) = x e^{-x^2/2}$:
+This has a powerful consequence for expansions. The overlap integral $c_n = \int \phi_n^*(x) f(x) dx$ vanishes whenever $\phi_n$ and $f$ have opposite symmetry — the integrand is antisymmetric, so positive and negative contributions cancel exactly. If we expand an antisymmetric function, all the even coefficients ($c_0, c_2, c_4, \ldots$) are exactly zero. The function only "talks to" eigenstates of matching symmetry. Let's see this with an antisymmetric function that has a sharp jump at the origin — $f(x) = \mathrm{sign}(x) e^{-x^2/8}$:
 """
 
 #%%
