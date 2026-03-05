@@ -2,52 +2,35 @@
 r"""
 # Finding Energy Eigenstates: The Shooting Method
 
-So far we've been solving the time-dependent Schrodinger equation:
+In the previous notebooks we solved the time-dependent Schrodinger equation:
 
 $$
 i\hbar \frac{\partial}{\partial t}|\psi(t)\rangle = \hat{H}|\psi(t)\rangle
 $$
 
-We discretized space, built the Hamiltonian as a matrix, and handed the whole
-thing to an ODE solver that marched $|\psi\rangle$ forward in time. Along the
-way we discovered that the dynamics boil down to the energy eigenstates
-$|n\rangle$ satisfying $\hat{H}|n\rangle = E_n|n\rangle$. A coherent state
-in the harmonic oscillator stays together because the $E_n$ are evenly spaced.
-Add a quartic perturbation and the unequal spacing causes the wave packet to
-spread, fragment, and eventually revive.
+We built the Hamiltonian as a matrix, handed it to an ODE solver, and watched wave packets slosh back and forth in harmonic and anharmonic potentials. The state $|\psi(t)\rangle$ was always changing — moving, spreading, developing interference fringes.
 
-The eigenstates were the key to understanding all of it — but we obtained them
-as a black box, calling `eigsh` on a matrix. In this notebook we go after them
-directly.
+But what if we asked a different question: **are there states that don't change at all?** A state $|\psi(t)\rangle$ whose probability density $|\langle x|\psi(t)\rangle|^2$ looks the same at every instant — no sloshing, no spreading, nothing. Such a state would be the quantum equivalent of a standing wave: vibrating in place, but with a shape that never moves.
 
-## From Time Evolution to Eigenstates
+## Stationary States
 
-Any state can be expanded in the energy eigenbasis:
+For $|\langle x|\psi(t)\rangle|^2$ to be constant in time, all the time dependence in $|\psi(t)\rangle$ must be a global phase — a factor $e^{-iEt/\hbar}$ that multiplies the entire state and cancels out when we take the squared modulus. So we're looking for states of the form:
 
 $$
-|\psi(t)\rangle = \sum_n c_n e^{-iE_n t/\hbar} |n\rangle
+|\psi(t)\rangle = e^{-iEt/\hbar}|\phi\rangle
 $$
 
-Each component just rotates in the complex plane at its own frequency
-$E_n/\hbar$. Suppose a state has only *one* component — it's already an
-eigenstate $|\psi(t)\rangle = e^{-iEt/\hbar}|E\rangle$. Then the time
-dependence is nothing but a global phase that has no physical consequence.
-Such a state is **stationary**: all its observable properties are constant
-in time. This is what "time-independent" really means — not that we've
-changed the equation, but that we're looking for the special states where
-nothing happens.
-
-Setting $|\psi(t)\rangle = e^{-iEt/\hbar}|E\rangle$ and substituting into
-the Schrodinger equation, the time dependence cancels and we get the
-**eigenvalue equation**:
+Substituting this into the Schrodinger equation, the time derivative pulls down a factor of $E$ and the exponential cancels on both sides, leaving:
 
 $$
-\hat{H}|E\rangle = E|E\rangle
+\hat{H}|\phi\rangle = E|\phi\rangle
 $$
 
-To turn this into something we can compute, we project onto position states
-$\langle x|$. Writing $\phi(x) = \langle x|E\rangle$ and expanding
-$\hat{H} = \hat{T} + \hat{V}$:
+This is an **eigenvalue equation**. The special states $|\phi\rangle$ are called **energy eigenstates**, and the allowed values $E$ are the energy **eigenvalues**. Finding them is one of the central problems in quantum mechanics — once you know all the eigenstates and eigenvalues of a system, you essentially know everything about it.
+
+## Turning It Into a Spatial ODE
+
+To compute anything, we project onto position: $\phi(x) = \langle x|\phi\rangle$. The Hamiltonian $\hat{H} = \hat{T} + \hat{V}$ becomes a differential operator, and the eigenvalue equation reads:
 
 $$
 -\frac{\hbar^2}{2m}\frac{d^2\phi}{dx^2} + V(x)\phi(x) = E\phi(x)
@@ -59,21 +42,9 @@ $$
 \frac{d^2\phi}{dx^2} = \frac{2m}{\hbar^2}\bigl[V(x) - E\bigr]\phi(x)
 $$
 
-Look at what this is: a second-order ODE in *space*. The energy $E$ enters
-as a parameter. Given any value of $E$, we can pick initial conditions and
-integrate across $x$ — exactly the way `solve_ivp` integrated the
-time-dependent equation across $t$ in Notebook 1.
+This is a second-order ODE in *space*. The energy $E$ enters as a parameter. Given any value of $E$, we can pick initial conditions and integrate across $x$ — exactly the way `solve_ivp` integrated the time-dependent equation across $t$ in Notebook 1.
 
-The catch: for a bound state, $\langle x|E\rangle$ must vanish as
-$x \to \pm\infty$. Deep in the classically forbidden region (where
-$V(x) > E$), the ODE becomes approximately $\phi'' \approx \kappa^2 \phi$
-with $\kappa > 0$, which has two solutions: a decaying exponential (physical)
-and a growing one (unphysical). If $E$ is not exactly an eigenvalue, the
-growing component inevitably takes over and the solution explodes.
-
-Let's see this happen. We'll use the anharmonic potential from Notebook 2 —
-$V(x) = \frac{1}{2}m\omega^2 x^2 + \lambda x^4$ — and integrate the ODE
-from the left boundary rightward with an energy that is *not* an eigenvalue.
+Let's just try it. We'll take the anharmonic potential from Notebook 2 — $V(x) = \frac{1}{2}m\omega^2 x^2 + \lambda x^4$ — pick some energy, and integrate the ODE from left to right to see what $\phi(x)$ looks like.
 """
 
 #%%
@@ -151,5 +122,58 @@ plt.tight_layout()
 plt.show()
 
 print(f"phi at x = {x_end}: {phi[-1]:.2e}  (should be ~0 for an eigenstate)")
+
+#%%
+r"""
+## Why Does It Blow Up?
+
+The solution oscillates nicely in the classically allowed region (where $E > V(x)$, between the turning points), but once it crosses into the forbidden region on the right it explodes. To understand why, consider what the ODE does in a region where the potential is roughly constant at some value $V_0 > E$:
+
+$$
+\frac{d^2\phi}{dx^2} = \frac{2m}{\hbar^2}(V_0 - E)\phi = \kappa^2 \phi
+$$
+
+where $\kappa = \sqrt{2m(V_0 - E)}/\hbar > 0$. This is easy to solve by inspection — the general solution is a sum of two exponentials:
+
+$$
+\phi(x) = A e^{+\kappa x} + B e^{-\kappa x}
+$$
+
+Both are perfectly valid solutions of the ODE. The decaying exponential $e^{-\kappa x}$ is what we'd expect of a quantum particle in a forbidden region: the probability density $|\phi|^2 \propto e^{-2\kappa x}$ drops off rapidly — the particle is exponentially unlikely to be found far from the allowed region. The growing exponential $e^{+\kappa x}$, on the other hand, says the particle becomes *more* likely to be found the further you go into the forbidden region, without limit. Such a solution can't be normalized — $\int|\phi|^2 dx$ diverges. Physicists call these **unphysical solutions** and discard them: meaningful quantum states must live in $L^2$ space, meaning they are square-integrable.
+
+That's exactly what we're seeing above. Our numerical integration starts from the left with some arbitrary initial conditions. As it propagates rightward through the forbidden region, it inevitably picks up a component of the growing exponential — even if only through numerical rounding — and that component takes over, sending $\phi$ to $\pm\infty$.
+
+This is the key insight behind the **shooting method**: only for special values of $E$ — the eigenvalues — does the growing exponential have exactly zero amplitude, leaving a normalizable solution that decays on both sides. To find those special energies, we can monitor $\phi$ at some fixed point in the forbidden region and vary $E$. Let's evaluate $\phi$ at $x = 5$ (well past the right turning point) for a range of energies and see what happens:
+"""
+
+#%%
+# Scan E and record phi at a fixed point in the forbidden region
+x_probe = 5.0
+E_scan = np.linspace(0.1, 12.0, 500)
+phi_at_probe = np.zeros(len(E_scan))
+
+for i, E in enumerate(E_scan):
+    sol = solve_ivp(
+        lambda x, y, E=E: schrodinger_ode(x, y, E),
+        [x_start, x_end],
+        [1e-5, 1e-3],
+        t_eval=[x_probe],
+        rtol=1e-10, atol=1e-12,
+    )
+    phi_at_probe[i] = sol.y[0, 0]
+
+# Normalize for display: divide by the envelope to see the sign changes
+# The raw values span many orders of magnitude, so we plot the sign-preserving log
+phi_signed_log = np.sign(phi_at_probe) * np.log10(1 + np.abs(phi_at_probe))
+
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.plot(E_scan, phi_signed_log, 'steelblue', linewidth=1)
+ax.axhline(0, color='k', linewidth=0.5)
+ax.set_xlabel('Energy E')
+ax.set_ylabel(r'sign($\phi$) $\times$ log$_{10}$(1 + |$\phi$|)  at  x = ' + f'{x_probe}')
+ax.set_title(f'Solution at x = {x_probe} as a function of energy')
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
 
 #%%
