@@ -269,20 +269,20 @@ We've found the eigenvalues — now let's look at the wave functions. For each $
 """
 
 #%%
-# Compute the first 4 eigenstates
-n_show = 4
+# Compute all 10 eigenstates (we'll plot the first 4, use all 10 later)
 x_wf_span = np.linspace(x_start, x_end, 2000)
+dx_wf = x_wf_span[1] - x_wf_span[0]
 
 eigenstates = []
-for n in range(n_show):
+for n in range(M):
     def ode(y, x, E=E_n[n]):
         return [y[1], (2 * m / hbar**2) * (V(x) - E) * y[0]]
     sol = odeint(ode, [1e-5, 1e-3], x_wf_span)
     phi_n = sol[:, 0]
-    # Normalize: int |phi|^2 dx = 1
-    dx_wf = x_wf_span[1] - x_wf_span[0]
     phi_n /= np.sqrt(np.sum(phi_n**2) * dx_wf)
     eigenstates.append(phi_n)
+
+n_show = 4
 
 # Plot in the same style as the first shooting plot
 colors = ['steelblue', 'coral', 'seagreen', 'goldenrod']
@@ -327,6 +327,62 @@ Notice also how the oscillations get shorter in wavelength as $n$ increases. Thi
 
 #%%
 r"""
+## Orthonormality
+
+Eigenstates of a Hermitian operator with distinct eigenvalues are guaranteed to be orthogonal: $\langle \phi_m | \phi_n \rangle = 0$ for $m \neq n$. Combined with our normalization $\langle \phi_n | \phi_n \rangle = 1$, this gives the **orthonormality** condition:
+
+$$
+\langle \phi_m | \phi_n \rangle = \int_{-\infty}^{\infty} \phi_m^*(x) \phi_n(x) dx = \delta_{mn}
+$$
+
+This is not something we imposed — it's a consequence of the eigenvalue equation and the Hermiticity of $\hat{H}$. Let's check how well our numerically computed eigenstates satisfy it by computing the full $10 \times 10$ overlap matrix.
+
+One subtlety: our shooting solutions diverge at the domain edges (we saw this earlier — the eigenvalues are accurate to $\sim 10^{-10}$, not exact). That divergence pollutes the overlap integral if we integrate over the full domain. We avoid this by truncating the integration at $|x| \leq 5$, well into the forbidden region where the physical wave function has decayed to negligible values but before the numerical divergence kicks in.
+"""
+
+#%%
+# Compute the overlap matrix, truncating at |x| <= 5 to avoid edge divergence
+x_cut = 5.0
+mask = np.abs(x_wf_span) <= x_cut
+
+# Renormalize on the truncated domain
+eigenstates_trunc = []
+for phi in eigenstates:
+    phi_t = phi[mask]
+    phi_t = phi_t / np.sqrt(np.sum(phi_t**2) * dx_wf)
+    eigenstates_trunc.append(phi_t)
+
+overlap = np.zeros((M, M))
+for i in range(M):
+    for j in range(M):
+        overlap[i, j] = np.sum(eigenstates_trunc[i] * eigenstates_trunc[j]) * dx_wf
+
+# Print it
+print("Overlap matrix <phi_m | phi_n>:\n")
+print("     ", "".join(f"   n={j}" for j in range(M)))
+for i in range(M):
+    row = "".join(f" {overlap[i,j]:+7.4f}" for j in range(M))
+    print(f"m={i}  {row}")
+
+print(f"\nLargest off-diagonal element: {np.max(np.abs(overlap - np.eye(M))):.2e}")
+
+#%%
+from matplotlib.colors import LogNorm
+
+fig, ax = plt.subplots(figsize=(6, 5))
+im = ax.imshow(np.abs(overlap), cmap='viridis', norm=LogNorm(vmin=1e-6, vmax=1),
+               origin='upper')
+ax.set_xlabel('n')
+ax.set_ylabel('m')
+ax.set_xticks(range(M))
+ax.set_yticks(range(M))
+ax.set_title(r'$|\langle \phi_m | \phi_n \rangle|$')
+plt.colorbar(im, ax=ax, label='Overlap (log scale)')
+plt.tight_layout()
+plt.show()
+
+#%%
+r"""
 ## Why Are These Wave Functions Real?
 
 You may have noticed something: our entire shooting calculation used only real numbers. In Notebooks 1 and 2, the wave function $\psi(x,t)$ was complex — we needed both real and imaginary parts to encode motion. But the eigenstates $\phi_n(x)$ we just found are purely real. What changed?
@@ -366,6 +422,10 @@ The deeper reason is **time-reversal symmetry**. For a particle in a real potent
 Put a charged particle in a magnetic field. The vector potential $\vec{A}$ enters the Hamiltonian through the kinetic energy $(p - eA)^2 / 2m$, which in position representation introduces terms proportional to $i\hbar A(x) \frac{d}{dx}$. The Hamiltonian matrix is still **Hermitian** — eigenvalues are still real, as they must be for any observable. But it is no longer real symmetric: it has imaginary off-diagonal elements. Time-reversal symmetry is broken, $\phi$ and $\phi^*$ are genuinely different states, and the eigenfunctions are irreducibly complex.
 
 The takeaway: eigenvalues are always real (that's the Hermitian guarantee). Eigenstates are real only when the Hamiltonian has time-reversal symmetry — which for us means a real potential and no magnetic field.
+
+### A Note on Linearity
+
+The eigenvalue equation $\hat{H}|\phi\rangle = E|\phi\rangle$ is linear: if $|\phi\rangle$ is a solution, so is $c|\phi\rangle$ for any scalar $c$. This is why normalizing after solving is allowed — the rescaled solution automatically satisfies the same equation. But $c$ can be any *complex* number, not just a real one. Multiplying a real eigenstate by $e^{i\theta}$ rotates it into the complex plane, giving an equally valid — but complex — eigenstate. So when we say eigenstates "are real," we really mean they *can be chosen* real. The physics doesn't change if you multiply by a phase; it's a convention, and a convenient one.
 """
 
 #%%
