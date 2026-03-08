@@ -1,5 +1,5 @@
 #%%
-"""
+r"""
 # Dynamics of a Quantum Harmonic Oscillator
 
 A particle trapped in a harmonic potential is one of the most important systems
@@ -25,7 +25,7 @@ from scipy.sparse import diags
 import matplotlib.pyplot as plt
 
 #%%
-"""
+r"""
 ## The Setup
 
 We're simulating a single particle of mass $m$ in a harmonic potential:
@@ -68,7 +68,7 @@ print(f"Initial packet width σ = {sigma:.4f}")
 print(f"Initial displacement   = {x0_displacement}")
 
 #%%
-"""
+r"""
 ## Discretizing Space
 
 We can't represent a continuous function $\psi(x)$ on a computer — we need to
@@ -113,7 +113,7 @@ print(f"Grid: {Nx} points from {x[0]:.1f} to {x[-1]:.1f}, dx = {dx:.4f}")
 print(f"Resolution: {sigma/dx:.1f} points per σ")
 
 #%%
-"""
+r"""
 ## The Harmonic Potential
 
 Let's define and plot the potential. Nothing fancy here — just the parabola
@@ -134,7 +134,7 @@ plt.tight_layout()
 plt.show()
 
 #%%
-"""
+r"""
 ## Turning Derivatives into Matrices
 
 Here's the central trick of numerical quantum mechanics: **derivatives become
@@ -201,7 +201,7 @@ H = T_kinetic + V_operator
 print(f"Hamiltonian: {H.shape[0]}×{H.shape[1]} sparse matrix, {H.nnz} non-zero entries")
 
 #%%
-"""
+r"""
 ## The Initial Wave Packet
 
 We start with a Gaussian wave packet centered at position $x_0$, with zero
@@ -256,7 +256,7 @@ plt.tight_layout()
 plt.show()
 
 #%%
-"""
+r"""
 ## Solving the Schrödinger Equation
 
 The Schrödinger equation $i\hbar \partial_t\psi = \hat{H}\psi$ is a
@@ -313,7 +313,7 @@ print(f"Solver status: {solution.message}")
 print(f"Number of RHS evaluations: {solution.nfev}")
 
 #%%
-"""
+r"""
 ## Norm Conservation Check
 
 A correct time evolution must conserve the norm of the wave function — total
@@ -337,7 +337,7 @@ print(f"<x> at t=T/2: {x_expect[Nt//2]:.3f}")
 print(f"<x> range: [{x_expect.min():.3f}, {x_expect.max():.3f}]")
 
 #%%
-"""
+r"""
 ## Animating the Wave Packet
 
 Now for the fun part — let's watch the probability density $|\psi(x,t)|^2$
@@ -380,7 +380,7 @@ plt.close()
 HTML(anim.to_jshtml())
 
 #%%
-"""
+r"""
 ## Expectation Values
 
 An animation is great for building intuition, but to do quantitative physics we
@@ -443,7 +443,7 @@ plt.show()
 print(f"Max deviation from classical: {np.max(np.abs(x_expect - x_classical)):.4f}")
 
 #%%
-"""
+r"""
 ## Momentum Expectation Value
 
 Position was easy because $\hat{x}$ is just "multiply by $x$" — a diagonal
@@ -498,7 +498,7 @@ plt.legend()
 plt.show()
 
 #%%
-"""
+r"""
 ## Wave Packet Width
 
 The position expectation value tells us *where* the packet is on average, but
@@ -529,7 +529,7 @@ print(f"sigma_x at t=T/2: {sigma_x[Nt//2]:.4f}")
 print(f"sigma_x range:    [{sigma_x.min():.4f}, {sigma_x.max():.4f}]")
 
 #%%
-"""
+r"""
 ## How Good Is Our Grid?
 
 Look at the width above: it's not *perfectly* constant. There's a small
@@ -647,7 +647,7 @@ discretization.
 """
 
 #%%
-"""
+r"""
 ## Energy Expectation Value
 
 Finally, the total energy. Since $\hat{H}$ is the Hamiltonian itself, the
@@ -681,7 +681,7 @@ E_analytical = 0.5 * m * omega**2 * x0_displacement**2 + 0.5 * hbar * omega
 print(f"Analytical E:     {E_analytical:.6f}")
 
 #%%
-"""
+r"""
 ## The Full Picture
 
 Let's put everything together in one plot. Four quantities, four panels: position,
@@ -735,7 +735,7 @@ plt.tight_layout()
 plt.show()
 
 #%%
-"""
+r"""
 ## How Motion is Encoded: The Phase of $\psi$
 
 In classical mechanics, position and velocity are independent quantities — you
@@ -792,7 +792,7 @@ plt.tight_layout()
 plt.show()
 
 #%%
-"""
+r"""
 Notice the pattern:
 - At $t = 0$ and $t = T/2$, the packet is at the turning points (maximum
   displacement, zero velocity). $\psi$ is nearly real — the imaginary part is
@@ -865,7 +865,7 @@ plt.tight_layout()
 plt.show()
 
 #%%
-"""
+r"""
 The current density confirms the picture: $j$ is zero at the turning
 points (no flow) and maximum at the center crossing (maximum speed). The sign
 flips between $t = T/4$ (moving left) and $t = 3T/4$ (moving right).
@@ -919,7 +919,7 @@ plt.close()
 HTML(anim_j.to_jshtml())
 
 #%%
-"""
+r"""
 ## Phase Space and the Husimi Q Function
 
 So far we've looked at the state from one angle at a time: $|\psi(x)|^2$
@@ -991,7 +991,7 @@ for fi, ti in enumerate(q_frame_idx):
 print(f"Done. Q max = {Q_frames.max():.4f}")
 
 #%%
-"""
+r"""
 Let's first look at a static 3D view of the initial Q function — you should see
 a single Gaussian peak sitting at $(x_0, 0)$ in phase space:
 """
@@ -1012,7 +1012,7 @@ plt.tight_layout()
 plt.show()
 
 #%%
-"""
+r"""
 Now let's animate this. The Q blob should orbit in a circle — the quantum
 version of the classical phase space trajectory. The animation renders each
 frame as a 3D surface, so it takes a moment to generate.
