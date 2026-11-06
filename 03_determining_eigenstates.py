@@ -2,7 +2,7 @@
 r"""
 # Finding Energy Eigenstates: The Shooting Method
 
-In the previous notebooks we solved the time-dependent Schrodinger equation:
+In the previous notebooks we solved the time-dependent Schrödinger equation:
 
 $$
 i\hbar \frac{\partial}{\partial t}|\psi(t)\rangle = \hat{H}|\psi(t)\rangle
@@ -20,7 +20,7 @@ $$
 |\psi(t)\rangle = e^{-iEt/\hbar}|\phi\rangle
 $$
 
-Substituting this into the Schrodinger equation, the time derivative pulls down a factor of $E$ and the exponential cancels on both sides, leaving:
+Substituting this into the Schrödinger equation, the time derivative pulls down a factor of $E$ and the exponential cancels on both sides, leaving:
 
 $$
 \hat{H}|\phi\rangle = E|\phi\rangle
@@ -213,7 +213,7 @@ We know the eigenvalues live at the zero crossings. To find them precisely, we c
 
 We'll use **Brent's method** (`brentq` from `scipy.optimize`) — it combines the safety of bisection with the speed of inverse quadratic interpolation. Since the root is bracketed, convergence is guaranteed; the only question is how many iterations it takes (typically around 10).
 
-The strategy: scan upward in energy with a coarse step of $\Delta E = 0.5$, which is safely below the minimum eigenvalue spacing of any confining potential with $\omega = 1$. Each time $\phi$ changes sign, we've bracketed an eigenvalue — hand it to Brent's method and move on. Stop once we've collected $M$ eigenvalues.
+The strategy: scan upward in energy with a coarse step of $\Delta E = 0.5$, which is safely below the minimum eigenvalue spacing of this potential: the gaps start at about $1$ (the harmonic value $\hbar\omega$) and grow with $n$ for $\lambda > 0$. This is not a universal guarantee — a double-well potential, for example, has nearly degenerate pairs of levels that a coarse scan would step right over, missing both roots. Each time $\phi$ changes sign, we've bracketed an eigenvalue — hand it to Brent's method and move on. Stop once we've collected $M$ eigenvalues.
 
 We also switch from `solve_ivp` to `odeint` for the ODE integration — for this kind of smooth, non-stiff problem it's roughly 40x faster.
 """
@@ -550,7 +550,7 @@ r"""
 
 You may have noticed something: our entire shooting calculation used only real numbers. In Notebooks 1 and 2, the wave function $\psi(x,t)$ was complex — we needed both real and imaginary parts to encode motion. But the eigenstates $\phi_n(x)$ we just found are purely real. What changed?
 
-Look at the two equations side by side. The time-dependent Schrodinger equation has an $i$ out front:
+Look at the two equations side by side. The time-dependent Schrödinger equation has an $i$ out front:
 
 $$
 i\hbar \frac{\partial \psi}{\partial t} = \hat{H}\psi

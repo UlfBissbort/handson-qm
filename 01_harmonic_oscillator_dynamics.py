@@ -533,7 +533,7 @@ r"""
 ## How Good Is Our Grid?
 
 Look at the width above: it's not *perfectly* constant. There's a small
-oscillation — about 2% peak-to-peak with our current grid. Is this real
+oscillation — about 7% peak-to-peak with our current grid. Is this real
 physics, or a numerical artifact?
 
 The simplest test: if the oscillation shrinks when we make the grid finer,

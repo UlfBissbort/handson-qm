@@ -232,7 +232,8 @@ print(f"  Ratio       = {V_quart_at_x0/V_harm_at_x0:.1%}")
 r"""
 ## Comparing Potentials
 
-At the initial displacement $x_0 = 3$, the quartic correction is about 18%
+With the default parameters ($\lambda = 0.01$, $x_0 = 3$), the printout above
+shows that the quartic correction at the initial displacement is about 18%
 of the harmonic term. That's a meaningful perturbation — not a tiny correction,
 but not so large that the potential looks qualitatively different from a
 parabola near the center.
@@ -349,8 +350,9 @@ HTML(anim.to_jshtml())
 r"""
 ## The Energy Spectrum: Why Equal Spacing Matters
 
-Before we run the time evolution, let's look at the energy eigenvalues of
-both potentials. This is where the Dirac notation pays off: a state
+The animation showed *what* happens; now let's see *why*. Before we run the
+detailed time evolution, let's look at the energy eigenvalues of both
+potentials. This is where the Dirac notation pays off: a state
 $|\psi\rangle = \sum_n c_n |n\rangle$ evolves as
 $|\psi(t)\rangle = \sum_n c_n e^{-iE_n t/\hbar} |n\rangle$. If the
 energy gaps $E_{n+1} - E_n$ are all equal (as in the harmonic oscillator),
@@ -578,13 +580,15 @@ on the energy spectrum.
 A powerful tool for this question is the **autocorrelation function**:
 
 $$
-C(t) = |\langle \psi(0) | \psi(t) \rangle|^2
+C(t) = \langle \psi(0) | \psi(t) \rangle
 $$
 
-This measures the overlap between the current state and the initial state. When
-$C(t) = 1$, the state has returned to its starting point (up to a global phase).
-When $C(t) \approx 0$, the state has spread out so much that it has essentially
-no overlap with the original localized wave packet.
+This is the overlap between the current state and the initial state. Its
+squared modulus $|C(t)|^2$ is the probability of finding the system back in
+its initial state. When $|C(t)|^2 = 1$, the state has returned to its starting
+point (up to a global phase). When $|C(t)|^2 \approx 0$, the state has spread
+out so much that it has essentially no overlap with the original localized
+wave packet.
 
 In the energy basis, the autocorrelation has a clean form:
 
@@ -593,14 +597,14 @@ $$
 $$
 
 This is a sum of oscillating terms. For the harmonic oscillator, all
-frequencies are multiples of $\omega$, so $C(t)$ is exactly periodic with
+frequencies are multiples of $\omega$, so $|C(t)|^2$ is exactly periodic with
 period $T = 2\pi/\omega$. For the anharmonic oscillator, the frequencies
 are incommensurate — but they may *approximately* realign at certain times,
 producing **quantum revivals**.
 """
 
 #%%
-# Autocorrelation function: |<psi(0)|psi(t)>|^2
+# Autocorrelation |C(t)|^2 = |<psi(0)|psi(t)>|^2
 autocorr_a = np.array([
     np.abs(np.sum(np.conj(psi_0) * sol_a.y[:, i]) * dx)**2
     for i in range(Nt)
@@ -672,7 +676,8 @@ print(f"\nThat's a long time! Let's simulate for {int(T_rev/T_osc * 1.2)} period
 r"""
 ## Long-Time Evolution: Seeing the Revival
 
-The revival time is about 45 periods. Let's run a longer simulation to
+For the default parameters, the estimate above gives a revival time of about
+45 periods. Let's run a longer simulation to
 see whether the wave packet actually reconstitutes itself. We'll track the
 autocorrelation function — a spike in $|C(t)|^2$ signals a revival.
 """
